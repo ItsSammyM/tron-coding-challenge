@@ -2,19 +2,19 @@ use crate::engine::prelude::*;
 
 pub struct HumanControlledBot;
 
-impl Bot for HumanControlledBot{
-    fn new(_my_player_id: PlayerId)->Self {
+impl Bot for HumanControlledBot {
+    fn new(_my_player_id: PlayerId) -> Self {
         HumanControlledBot
     }
 
     fn next_action(&mut self, _game_state: &GameState) -> Direction {
-        use std::io::stdin;  
+        use std::io::stdin;
         let mut s = String::new();
         let _ = stdin().read_line(&mut s);
-        if let Some('\n')=s.chars().next_back() {
+        if let Some('\n') = s.chars().next_back() {
             s.pop();
         }
-        if let Some('\r')=s.chars().next_back() {
+        if let Some('\r') = s.chars().next_back() {
             s.pop();
         }
 
@@ -23,7 +23,7 @@ impl Bot for HumanControlledBot{
             "d" => Direction::PositiveX,
             "s" => Direction::NegativeY,
             "a" => Direction::NegativeX,
-            _ => Direction::PositiveX
+            _ => Direction::PositiveX,
         }
     }
 }
