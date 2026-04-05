@@ -2,7 +2,7 @@ use crate::engine::prelude::*;
 use std::collections::HashMap;
 
 pub const GRID_SIZE: usize = 21;
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Grid([GridCell; GRID_SIZE as usize * GRID_SIZE as usize]);
 impl Grid {
     pub fn new_default() -> Self {

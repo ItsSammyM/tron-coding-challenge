@@ -12,6 +12,7 @@ pub mod grid_cell;
 pub mod grid_position;
 pub mod player_id;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum GameOver {
     Winner { player_who_won: PlayerId },
     Draw,

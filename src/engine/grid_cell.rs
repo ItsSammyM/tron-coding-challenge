@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::engine::prelude::*;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum GridCell {
     Empty,
     Tail(PlayerId, Direction),

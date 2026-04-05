@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use crate::engine::prelude::*;
 
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct GameState {
     grid_history: Vec<Grid>,
     game_over: Option<GameOver>,

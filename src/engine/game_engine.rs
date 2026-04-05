@@ -1,4 +1,5 @@
 use crate::engine::prelude::*;
+
 pub struct GameEngine<A: Bot, B: Bot> {
     game_state: GameState,
     player_a_bot: A,
