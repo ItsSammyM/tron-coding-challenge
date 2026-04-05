@@ -5,3 +5,5 @@ edition = "2024"
 
 [dependencies]
 rand = "0.10.0"
+rustc-hash = "2.1.2"
+hashbrown = "0.16.1"

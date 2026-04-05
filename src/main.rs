@@ -2,6 +2,7 @@ use crate::{engine::prelude::*, players::{example_bot::ExampleBot, jack_papel_bo
 
 mod engine;
 mod players;
+mod rand;
 
 fn main() {
     use players::human_controlled_bot::HumanControlledBot;
