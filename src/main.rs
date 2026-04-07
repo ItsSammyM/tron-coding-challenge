@@ -1,41 +1,29 @@
 use crate::engine::prelude::*;
-use crate::players::{
-    example_bot::ExampleBot,
-    human_controlled_bot::HumanControlledBot
-};
+use crate::players::*;
+use competition::Competition;
+use competition::CompetitionPlayer;
 
 mod engine;
 mod players;
+mod competition;
 
 fn main() {
-    one_test_game::<ExampleBot, HumanControlledBot>();
+    run_test_game_print::<example_bot::ExampleBot, human_controlled_bot::HumanControlledBot>();
 
-    // run_game(vec![
-    //     Player::new_player::<ExampleBot>(),
-    //     Player::new_player::<HumanControlledBot>(),
-    // ]);
+    Competition::run_and_print(vec![
+        CompetitionPlayer::new_player::<example_bot::ExampleBot>(),
+        CompetitionPlayer::new_player::<bot_template::BotTemplate>(),
+        CompetitionPlayer::new_player::<stardustz_bots::StardustzBot>(),
+        CompetitionPlayer::new_player::<jack_papel_bots::hallucinator::Hallucinator>(),
+        CompetitionPlayer::new_player::<jack_papel_bots::rip_and_tear::RipAndTear>(),
+        CompetitionPlayer::new_player::<jack_papel_bots::freedom_eater::FreedomEater>(),
+    ]);
 }
 
-fn one_test_game<O: Bot + 'static, X: Bot + 'static>(){
-    GameEngine::new(BuildBot::<O>::new(), BuildBot::<X>::new()).run_game();
-}
-
-fn run_game(players: Vec<Player>){
-    //code to make every player face eacother 6 times and track points
-    todo!()
-}
-
-struct Player{
-    name: String,
-    points: f32,
-    bot_factory: Box<dyn BotFactory>
-}
-impl Player{
-    fn new_player<B: Bot + 'static>() -> Self {
-        Self {
-            name: "todo".to_string(),
-            bot_factory: BuildBot::<B>::new(),
-            points: 0.0
-        }
-    }
+fn run_test_game_print<O: Bot + 'static, X: Bot + 'static>(){
+    GameEngine::new(
+        &BuildBot::<O>::new(),
+        &BuildBot::<X>::new(),
+        true
+    ).run_game_get_result_print();
 }

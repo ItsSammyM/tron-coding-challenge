@@ -5,8 +5,8 @@ pub struct BotTemplate {
 }
 
 impl Bot for BotTemplate {
-    fn new(my_player_id: PlayerId) -> Self {
-        BotTemplate { my_player_id }
+    fn new(args: BotArgs) -> Self {
+        BotTemplate { my_player_id: args.my_player() }
     }
 
     fn next_action(&mut self, _game_state: &GameState) -> Direction {

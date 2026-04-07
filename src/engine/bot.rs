@@ -2,13 +2,30 @@ use std::marker::PhantomData;
 
 use crate::engine::prelude::*;
 
+#[derive(Debug, Clone, Copy)]
+pub struct BotArgs{
+    debug: bool,
+    player: PlayerId
+}
+impl BotArgs{
+    pub fn new(player: PlayerId, debug: bool) -> Self {
+        Self { debug, player }
+    }
+    pub fn my_player(&self) -> PlayerId {
+        self.player
+    }
+    pub fn debug_mode(&self) -> bool {
+        self.debug
+    }
+}
+
 pub trait Bot {
-    fn new(my_player_id: PlayerId) -> Self;
+    fn new(args: BotArgs) -> Self;
     fn next_action(&mut self, game_state: &GameState) -> Direction;
 }
 
 pub trait BotFactory {
-    fn new_bot(&self, my_player_id: PlayerId) -> Box<dyn BotActionGenerator>;
+    fn new_bot(&self, args: BotArgs) -> Box<dyn BotActionGenerator>;
 }
 
 pub trait BotActionGenerator {
@@ -25,8 +42,8 @@ impl<B: Bot + 'static> BuildBot<B> {
 }
 
 impl<B: Bot + 'static> BotFactory for BuildBot<B> {
-    fn new_bot(&self, player_id: PlayerId) -> Box<dyn BotActionGenerator> {
-        Box::new(B::new(player_id))
+    fn new_bot(&self, args: BotArgs) -> Box<dyn BotActionGenerator> {
+        Box::new(B::new(args))
     }
 }
 

@@ -20,9 +20,9 @@ enum State{
 }
 
 impl Bot for SimpleSpaceFillBot{
-    fn new(my_player_id: PlayerId)->Self {
+    fn new(args: BotArgs)->Self {
         SimpleSpaceFillBot{
-            my_player_id,
+            my_player_id: args.my_player(),
             state: State::GoToWall(None)
         }
     }
@@ -183,9 +183,6 @@ impl SimpleSpaceFillBot{
         let up_most_y = positions
             .iter()
             .max_by(|a,b|a.y().cmp(&b.y()))?;
-
-        println!("{:?}", up_most_y.y());
-        println!("{:?}", from.y());
 
         Direction::all()
             .map(|direction|{

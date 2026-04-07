@@ -5,6 +5,7 @@ use crate::{
 
 pub struct StardustzBot{
     my_player_id: PlayerId,
+    args: BotArgs,
     inner: InnerBot,
 }
 enum InnerBot{
@@ -13,10 +14,11 @@ enum InnerBot{
 }
 
 impl Bot for StardustzBot{
-    fn new(my_player_id: PlayerId)->StardustzBot {
+    fn new(args: BotArgs)->StardustzBot {
         return StardustzBot{
-            my_player_id: my_player_id,
-            inner: InnerBot::Chase(ChaseBot::new(my_player_id))
+            my_player_id: args.my_player(),
+            args,
+            inner: InnerBot::Chase(ChaseBot::new(args))
         }
     }
 
@@ -28,7 +30,7 @@ impl Bot for StardustzBot{
         );
 
         if split && !matches!(self.inner, InnerBot::SpaceFill(..)){
-            self.inner = InnerBot::SpaceFill(SimpleSpaceFillBot::new(self.my_player_id));
+            self.inner = InnerBot::SpaceFill(SimpleSpaceFillBot::new(self.args));
         }
 
         match &mut self.inner {

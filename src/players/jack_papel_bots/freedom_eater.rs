@@ -5,8 +5,8 @@ pub struct FreedomEater {
 }
 
 impl Bot for FreedomEater {
-    fn new(my_player_id: PlayerId) -> Self {
-        Self { my_player_id }
+    fn new(args: BotArgs) -> Self {
+        Self { my_player_id: args.my_player() }
     }
 
     fn next_action(&mut self, game_state: &GameState) -> Direction {

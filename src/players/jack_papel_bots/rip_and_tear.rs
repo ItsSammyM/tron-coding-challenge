@@ -1,5 +1,3 @@
-use std::cell;
-
 use crate::{engine::prelude::*, players::jack_papel_bots::{JackBot, a_star_pathfinding, base_heuristic, direction_to, find_farthest_point, freedom_eater::FreedomEater, get_neighbors, pathfind, shortest_distance}};
 
 // This bot calculates the farthest reachable point from the other bot,
@@ -8,11 +6,12 @@ use crate::{engine::prelude::*, players::jack_papel_bots::{JackBot, a_star_pathf
 // but isn't closer to the other bot than to us.
 pub struct RipAndTear {
     my_player_id: PlayerId,
+    debug_mode: bool
 }
 
 impl Bot for RipAndTear {
-    fn new(my_player_id: PlayerId) -> Self {
-        Self { my_player_id }
+    fn new(args: BotArgs) -> Self {
+        Self { my_player_id: args.my_player(), debug_mode: args.debug_mode() }
     }
 
     fn next_action(&mut self, game_state: &GameState) -> Direction {
@@ -87,7 +86,7 @@ impl Bot for RipAndTear {
                 };
 
                 if pathfind(my_pos, other_pos, grid).is_some() {
-                    println!("rip_and_tear: escaping");
+                    if self.debug_mode { println!("rip_and_tear: escaping"); }
 
                     if 
                         let Some(direction) = escape_plan &&
@@ -126,7 +125,7 @@ impl Bot for RipAndTear {
                     }
                 } else {
                     // Follow the right wall to fill the space.
-                    println!("rip_and_tear: filling");
+                    if self.debug_mode { println!("rip_and_tear: filling"); }
                     let direction = game_state.current_grid().player_head_direction(self.my_player_id);
 
                     let available_directions = self.ideal_non_hole_directions(game_state).collect::<Vec<_>>();
