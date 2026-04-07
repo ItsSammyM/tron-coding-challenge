@@ -5,7 +5,7 @@ use crate::engine::prelude::*;
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct GameState {
     grid_history: Vec<Grid>,
-    pub(super) game_over: Option<GameOver>,
+    game_over: Option<GameOver>,
 }
 impl GameState {
     pub fn new() -> Self {
