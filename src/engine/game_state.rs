@@ -41,28 +41,33 @@ impl GameState {
         &mut self,
         player_a_choice: Direction,
         player_b_choice: Direction,
-    ) -> bool {
-        if self.game_over.is_some() {
-            return false;
+    ) -> NextFrameResult {
+        if let Some(game_over) = self.game_over {
+            return game_over.into()
         }
 
-        let next_frame_result = self.current_grid().next_grid(player_a_choice, player_b_choice, self.current_time()+1);
-        match next_frame_result {
+        let next_frame_result = self
+            .current_grid()
+            .next_grid(
+                player_a_choice,
+                player_b_choice,
+                self.current_time() + 1
+            );
+        match &next_frame_result {
             NextFrameResult::NextFrame(grid) => {
-                self.grid_history.push(grid);
-                true
+                self.grid_history.push(grid.clone());
             }
             NextFrameResult::Winner { player_who_won } => {
-                self.game_over = Some(GameOver::Winner { player_who_won });
-                false
+                self.game_over = Some(GameOver::Winner { player_who_won: *player_who_won });
             }
             NextFrameResult::Draw => {
                 self.game_over = Some(GameOver::Draw);
-                false
             }
         }
+        next_frame_result
     }
 }
+
 impl Display for GameState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.game_over {

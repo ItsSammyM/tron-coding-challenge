@@ -3,22 +3,25 @@ use std::fmt::Display;
 use crate::engine::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct PlayerId(bool);
+pub enum PlayerId{O, X}
 impl PlayerId {
     pub fn new_o() -> PlayerId {
-        PlayerId(true)
+        PlayerId::O
     }
     pub fn new_x() -> PlayerId {
-        PlayerId(false)
+        PlayerId::X
     }
     pub fn is_o(&self) -> bool {
-        self.0
+        *self == PlayerId::O
     }
     pub fn is_x(&self) -> bool {
-        !self.0
+        *self == PlayerId::X
     }
     pub fn other(&self) -> Self {
-        PlayerId(!self.0)
+        match self {
+            PlayerId::O => PlayerId::X,
+            PlayerId::X => PlayerId::O,
+        }
     }
     
     pub fn get_head_pos(&self, grid: &Grid)->GridPosition{
@@ -30,10 +33,9 @@ impl PlayerId {
 }
 impl Display for PlayerId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let player = match self.0 {
-            true => "O",
-            false => "X",
-        };
-        write!(f, "{}", player)
+        write!(f, "{}", match self {
+            PlayerId::O => "O",
+            PlayerId::X => "X",
+        })
     }
 }

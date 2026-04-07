@@ -15,59 +15,57 @@ impl Grid {
             GridCell::Head(PlayerId::new_x(), Direction::PositiveX);
         out
     }
-    pub fn next_grid(&self, player_a_choice: Direction, player_b_choice: Direction, next_frame: usize) -> NextFrameResult {
+    pub fn next_grid(&self, o_choice: Direction, x_choice: Direction, next_frame: usize) -> NextFrameResult {
 
         //function is a hot mess
 
-        let (a_pos, b_pos) = self.player_head_positions();
+        let (o_pos, x_pos) = self.player_head_positions();
 
-        let next_a_pos = a_pos.after_moved(player_a_choice);
-        let next_b_pos = b_pos.after_moved(player_b_choice);
+        let next_o_pos = o_pos.after_moved(o_choice);
+        let next_x_pos = x_pos.after_moved(x_choice);
 
-        if next_a_pos.is_none() && next_b_pos.is_none() {
+        if next_o_pos.is_none() && next_x_pos.is_none() {
             return NextFrameResult::Draw;
         };
 
-        let Some(next_a_pos) = next_a_pos else {
+        let Some(next_o_pos) = next_o_pos else {
             return NextFrameResult::Winner {
                 player_who_won: PlayerId::new_x(),
             };
         };
-        let Some(next_b_pos) = next_b_pos else {
+        let Some(next_x_pos) = next_x_pos else {
             return NextFrameResult::Winner {
                 player_who_won: PlayerId::new_o(),
             };
         };
 
-        if next_a_pos == next_b_pos {
+        if next_o_pos == next_x_pos {
             return NextFrameResult::Draw;
         };
 
-        let next_a_cell = self.get_cell(next_a_pos);
-        let next_b_cell = self.get_cell(next_b_pos);
+        let next_o_cell = self.get_cell(next_o_pos);
+        let next_x_cell = self.get_cell(next_x_pos);
 
-        let a_blocked = next_a_cell.is_not_empty();
-        let b_blocked = next_b_cell.is_not_empty();
+        let o_blocked = next_o_cell.is_not_empty();
+        let x_blocked = next_x_cell.is_not_empty();
 
-        if a_blocked && b_blocked {
+        if o_blocked && x_blocked {
             return NextFrameResult::Draw;
-        };
-        if a_blocked {
+        }else if o_blocked {
             return NextFrameResult::Winner {
                 player_who_won: PlayerId::new_x(),
             };
-        };
-        if b_blocked {
+        }else if x_blocked {
             return NextFrameResult::Winner {
                 player_who_won: PlayerId::new_o(),
             };
         };
 
         let mut out = self.clone();
-        *out.get_cell_mut(a_pos) = GridCell::Tail(PlayerId::new_o(), player_a_choice, next_frame);
-        *out.get_cell_mut(b_pos) = GridCell::Tail(PlayerId::new_x(), player_b_choice, next_frame);
-        *out.get_cell_mut(next_a_pos) = GridCell::Head(PlayerId::new_o(), player_a_choice);
-        *out.get_cell_mut(next_b_pos) = GridCell::Head(PlayerId::new_x(), player_b_choice);
+        *out.get_cell_mut(o_pos) = GridCell::Tail(PlayerId::new_o(), o_choice, next_frame);
+        *out.get_cell_mut(x_pos) = GridCell::Tail(PlayerId::new_x(), x_choice, next_frame);
+        *out.get_cell_mut(next_o_pos) = GridCell::Head(PlayerId::new_o(), o_choice);
+        *out.get_cell_mut(next_x_pos) = GridCell::Head(PlayerId::new_x(), x_choice);
 
         NextFrameResult::NextFrame(out)
     }
