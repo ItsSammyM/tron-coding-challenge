@@ -1,4 +1,4 @@
-use crate::{engine::prelude::*, players::example_bot::ExampleBot};
+use crate::{engine::prelude::*, players::{example_bot::ExampleBot, jack_papel_bots::hallucinator::Hallucinator}};
 
 mod engine;
 mod players;
