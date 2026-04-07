@@ -1,4 +1,4 @@
-use crate::{engine::prelude::*, players::{example_bot::ExampleBot, jack_papel_bots::{freedom_eater::FreedomEater, hallucinator::Hallucinator}}};
+use crate::{engine::prelude::*, players::example_bot::ExampleBot};
 
 mod engine;
 mod players;
@@ -6,7 +6,7 @@ mod players;
 fn main() {
     use players::human_controlled_bot::HumanControlledBot;
 
-    let mut game: GameEngine<Hallucinator, FreedomEater> = GameEngine::new();
+    let mut game: GameEngine<HumanControlledBot, ExampleBot> = GameEngine::new();
 
     game.run_game();
 }
