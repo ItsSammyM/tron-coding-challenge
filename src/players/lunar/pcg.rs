@@ -1,4 +1,4 @@
-
+#![allow(dead_code)]
 
 use std::{hash::Hasher, time::Instant};
 
@@ -7,24 +7,29 @@ use core::num::NonZero;
 const MULTIPLIER: u64 = 6364136223846793005;
 const INCREMENT: u64 = 1442695040888963407;
 
-
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct RNG {
+pub struct RandPCG {
     pub state: u64
 }
 
+impl Default for RandPCG {
+    fn default() -> Self {
+        Self::new_entropic()
+    }
+}
 
-impl RNG {
+
+impl RandPCG {
     #[inline]
     #[must_use]
     /// Creates a new random number generator with the specified seed.
-    pub fn new(seed: u64) -> RNG {
+    pub fn new(seed: u64) -> RandPCG {
         Self {state: seed}
     }
 
     /// Creates a new random number generator with an arbitrary seed.
     #[must_use]
-    pub fn new_entropic() -> RNG {
+    pub fn new_entropic() -> RandPCG {
         let seed_seed = Instant::now();
         // SAFETY: the copy ensures no writes into unowned memory.
         // and there no fucks to give about what values are actually
@@ -101,7 +106,7 @@ impl RNG {
     #[must_use]
     #[expect(dead_code)]
     pub fn with_advantage<V, G>(&mut self, rerolls: u32, mut generator: G) -> V 
-    where V: Ord, G: FnMut(&mut RNG) -> V {
+    where V: Ord, G: FnMut(&mut RandPCG) -> V {
         let mut cur = generator(self);
         for _ in 0..rerolls {
             cur = cur.max(generator(self))
@@ -112,7 +117,7 @@ impl RNG {
     #[must_use]
     #[expect(dead_code)]
     pub fn with_disadvantage<V, G>(&mut self, rerolls: u32, mut generator: G) -> V
-    where V: Ord, G: FnMut(&mut RNG) -> V {
+    where V: Ord, G: FnMut(&mut RandPCG) -> V {
         let mut cur = generator(self);
         for _ in 0..rerolls {
             cur = cur.min(generator(self))
@@ -123,7 +128,7 @@ impl RNG {
     #[inline]
     #[must_use]
     pub fn next_that_is<V, G, C>(&mut self, mut generator: G, mut criteria: C) -> V
-    where G: FnMut(&mut RNG) -> V, C: FnMut(&V) -> bool {
+    where G: FnMut(&mut RandPCG) -> V, C: FnMut(&V) -> bool {
         loop {
             let ans = generator(self);
             if criteria(&ans) {
