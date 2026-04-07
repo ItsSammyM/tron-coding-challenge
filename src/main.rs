@@ -14,10 +14,10 @@ fn main() {
 
     Regex::new("").unwrap().replace("", "");
 
-    let mut game: GameEngine<OBot, XBot> = GameEngine::new();
-
     #[cfg(not(feature = "sample_games"))]
     {
+        let mut game: GameEngine<OBot, XBot> = GameEngine::new();
+
         game.run_game();
     }
     #[cfg(feature = "sample_games")]
