@@ -133,6 +133,17 @@ impl Grid {
             })
             .expect("both players must have a head")
     }
+    pub fn player_head_direction(&self, id: PlayerId)->Direction{
+        *self.0
+            .iter()
+            .enumerate()
+            .find_map(|(_, cell)|{
+                let GridCell::Head(player_id, direction) = cell else {return None};
+                if *player_id != id {return None};
+                Some(direction)
+            })
+            .expect("both players must have a head")
+    }
 
     pub fn cell_is_empty(&self, pos: impl Into<GridPosition>) -> bool {
         self.get_cell(pos).is_empty()

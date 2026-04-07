@@ -1,3 +1,4 @@
 pub mod bot_template;
 pub mod example_bot;
 pub mod human_controlled_bot;
+pub mod stardustz_bots;

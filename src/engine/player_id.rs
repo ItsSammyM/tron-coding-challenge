@@ -24,6 +24,9 @@ impl PlayerId {
     pub fn get_head_pos(&self, grid: &Grid)->GridPosition{
         grid.player_head_position(*self)
     }
+    pub fn get_head_direction(&self, grid: &Grid)->Direction{
+        grid.player_head_direction(*self)
+    }
 }
 impl Display for PlayerId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

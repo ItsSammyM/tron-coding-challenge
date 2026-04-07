@@ -1,6 +1,6 @@
 use crate::engine::prelude::*;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 /// Represents an in bounds position
 pub struct GridPosition(usize);
 
