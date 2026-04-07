@@ -9,7 +9,7 @@ impl Bot for BotTemplate {
         BotTemplate { my_player_id }
     }
 
-    fn next_action(&mut self, game_state: &GameState) -> Direction {
+    fn next_action(&mut self, _game_state: &GameState) -> Direction {
         Direction::PositiveX
     }
 }

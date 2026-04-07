@@ -1,43 +1,59 @@
 use crate::engine::prelude::*;
 
-pub struct GameEngine<A: Bot, B: Bot> {
+pub struct GameEngine {
     game_state: GameState,
-    player_a_bot: A,
-    player_b_bot: B,
+    o: Box<dyn BotActionGenerator>,
+    x: Box<dyn BotActionGenerator>,
 }
-impl<A: Bot, B: Bot> GameEngine<A, B> {
-    pub fn new() -> Self {
+impl GameEngine {
+    pub fn new(o: Box<dyn BotFactory>, x: Box<dyn BotFactory>) -> Self {
         Self {
             game_state: GameState::new(),
-            player_a_bot: A::new(PlayerId::new_o()),
-            player_b_bot: B::new(PlayerId::new_x()),
+            o: o.new_bot(PlayerId::new_o()),
+            x: x.new_bot(PlayerId::new_x()),
         }
     }
+}
+impl GameEngine {
     /// returns true if game not over
-    pub fn go_to_next_frame(&mut self) -> bool {
-        self.game_state.go_to_next_frame(
-            self.player_a_bot.next_action(&self.game_state),
-            self.player_b_bot.next_action(&self.game_state),
-        )
+    pub fn go_to_next_frame(&mut self) -> NextFrameResult {
+        let a_action = std::panic::catch_unwind(
+            std::panic::AssertUnwindSafe(||self.o.generate_next_action(&self.game_state))
+        );
+        let b_action = std::panic::catch_unwind(
+            std::panic::AssertUnwindSafe(||self.x.generate_next_action(&self.game_state))
+        );
+
+        match (a_action.is_err(), b_action.is_err()){
+            (true, true) => NextFrameResult::Draw,
+            (true, false) => NextFrameResult::Winner { player_who_won: PlayerId::X },
+            (false, true) => NextFrameResult::Winner { player_who_won: PlayerId::X },
+            (false, false) => {
+                let Ok(a_action) = a_action else {unreachable!()};
+                let Ok(b_action) = b_action else {unreachable!()};
+                self.game_state.go_to_next_frame(
+                    a_action,
+                    b_action,
+                )
+            },
+        }
     }
 
     pub fn print_current_game_state(&self){
         println!("{}", self.game_state)
     }
-    pub fn run_game(&mut self) -> GameOver {
-        #[cfg(not(feature = "no_print"))]
-        {
-            self.print_current_game_state();
-            while self.go_to_next_frame() {
-                self.print_current_game_state();
-            }
-            self.print_current_game_state();
-        }
-        #[cfg(feature = "no_print")]
-        {
-            while self.go_to_next_frame() {}
-        }
 
-        self.game_state.game_over.expect("Game can't end without a winner or a draw")
+    pub fn run_game(&mut self) -> GameOver {
+        loop {
+            #[cfg(not(feature = "no_print"))]
+            self.print_current_game_state();
+
+            if let Some(game_over) = self.go_to_next_frame().game_over() {
+                #[cfg(not(feature = "no_print"))]
+                self.print_current_game_state();
+
+                return game_over
+            }
+        }
     }
 }

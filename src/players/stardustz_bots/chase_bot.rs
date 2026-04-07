@@ -1,4 +1,4 @@
-use crate::{engine::prelude::*, players::stardustz_bots::{a_star::Astar, helper::{DirectionIterator, players_only_not_crash_direction}}};
+use crate::{engine::prelude::*, players::stardustz_bots::{a_star::Astar, helper::DirectionIterator}};
 
 pub struct ChaseBot{
     my_player_id: PlayerId,
