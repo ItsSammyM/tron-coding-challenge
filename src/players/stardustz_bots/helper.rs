@@ -19,18 +19,19 @@ impl PlayerIdFunctions for PlayerId {
 
 
 pub trait PositionFunctions{
-    fn blocked_side_count(&self, grid: &Grid, flood: &HashSet<GridPosition>)->u8;
-    fn blocked_in_direction(&self, grid: &Grid, direction: Direction, flood: &HashSet<GridPosition>)->bool;
+    fn blocked_side_count(&self, player: PlayerId, grid: &Grid, flood: &HashSet<GridPosition>)->u8;
+    fn blocked_in_direction(&self, player: PlayerId, grid: &Grid, direction: Direction, flood: &HashSet<GridPosition>)->bool;
 }
 impl PositionFunctions for GridPosition{
-    fn blocked_side_count(&self, grid: &Grid, flood: &HashSet<GridPosition>)->u8 {
-        (if self.blocked_in_direction(grid, Direction::NegativeX, flood) {1} else {0}) + 
-        (if self.blocked_in_direction(grid, Direction::NegativeY, flood) {1} else {0}) + 
-        (if self.blocked_in_direction(grid, Direction::PositiveX, flood) {1} else {0}) + 
-        (if self.blocked_in_direction(grid, Direction::PositiveY, flood) {1} else {0})
+    fn blocked_side_count(&self, player: PlayerId, grid: &Grid, flood: &HashSet<GridPosition>)->u8 {
+        (if self.blocked_in_direction(player, grid, Direction::NegativeX, flood) {1} else {0}) + 
+        (if self.blocked_in_direction(player, grid, Direction::NegativeY, flood) {1} else {0}) + 
+        (if self.blocked_in_direction(player, grid, Direction::PositiveX, flood) {1} else {0}) + 
+        (if self.blocked_in_direction(player, grid, Direction::PositiveY, flood) {1} else {0})
     }
-    fn blocked_in_direction(&self, grid: &Grid, direction: Direction, flood: &HashSet<GridPosition>)->bool {
+    fn blocked_in_direction(&self, player: PlayerId, grid: &Grid, direction: Direction, flood: &HashSet<GridPosition>)->bool {
         if let Some(pos) = self.after_moved(direction) {
+            if player.get_head_pos(grid) == pos {return false}
             if pos.is_empty(grid) && flood.contains(&pos) {false} else {true}
         }else{
             true

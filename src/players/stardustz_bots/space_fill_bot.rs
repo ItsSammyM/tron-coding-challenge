@@ -30,7 +30,7 @@ impl Bot for SimpleSpaceFillBot{
     fn next_action(&mut self, game_state: &GameState) -> Direction {
         let my_pos = game_state.current_grid().player_head_position(self.my_player_id);
         let grid = game_state.current_grid();
-        let flood_fill = Self::floodfill(my_pos, grid);
+        let flood_fill = Self::floodfill(self.my_player_id, my_pos, grid);
 
         match self.state.clone() {
             State::GoToWall(_) => self.go_to_wall(game_state, &flood_fill),
@@ -82,7 +82,39 @@ impl SimpleSpaceFillBot{
         if forward_clear {
             return self.my_player_id.get_head_direction(grid);
         }
+        
+        let right_clear = self.my_player_id
+            .get_head_pos(grid)
+            .after_moved(self.my_player_id.get_head_direction(grid).right_of())
+            .and_then(|pos|Some(flood_fill.contains(&pos) && pos.is_empty(grid)))
+            .unwrap_or(false);
 
+        if right_clear {
+            return self.my_player_id.get_head_direction(grid).right_of();
+        }
+
+        //now while ignoring the flood
+
+        let left_clear = self.my_player_id
+            .get_head_pos(grid)
+            .after_moved(self.my_player_id.left_of(grid))
+            .and_then(|pos|Some(pos.is_empty(grid)))
+            .unwrap_or(false);
+
+        if left_clear {
+            return self.my_player_id.get_head_direction(grid).left_of();
+        }
+
+        let forward_clear = self.my_player_id
+            .get_head_pos(grid)
+            .after_moved(self.my_player_id.get_head_direction(grid))
+            .and_then(|pos|Some(pos.is_empty(grid)))
+            .unwrap_or(false);
+
+        if forward_clear {
+            return self.my_player_id.get_head_direction(grid);
+        }
+        
         self.my_player_id.get_head_direction(grid).right_of()
     }
 
@@ -96,7 +128,7 @@ impl SimpleSpaceFillBot{
     
 
     /// Doesnt fill in 1 wide gaps that i wont be able to get out of
-    fn floodfill(from: GridPosition, grid: &Grid) -> HashSet<GridPosition> {
+    fn floodfill(player: PlayerId, from: GridPosition, grid: &Grid) -> HashSet<GridPosition> {
         
         let mut to_add_neighbors = HashSet::new();
         let mut visited = HashSet::new();
@@ -123,7 +155,7 @@ impl SimpleSpaceFillBot{
             let old_len = visited.len();
             visited = visited
                 .iter()
-                .filter(|pos|pos.blocked_side_count(grid, &visited) <= 3)
+                .filter(|pos|pos.blocked_side_count(player, grid, &visited) < 3)
                 .cloned()
                 .collect();
             if visited.len() == old_len {
@@ -152,10 +184,13 @@ impl SimpleSpaceFillBot{
             .iter()
             .max_by(|a,b|a.y().cmp(&b.y()))?;
 
+        println!("{:?}", up_most_y.y());
+        println!("{:?}", from.y());
+
         Direction::all()
             .map(|direction|{
                 (
-                    direction, 
+                    direction,
                     match direction {
                         PositiveY => up_most_y.y() - from.y(),
                         NegativeY => from.y() - down_most_y.y(),

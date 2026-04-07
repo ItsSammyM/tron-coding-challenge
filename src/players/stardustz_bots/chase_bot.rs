@@ -14,17 +14,23 @@ impl Bot for ChaseBot{
         let my_pos = self.my_player_id.get_head_pos(grid);
         let enemy_pos = self.my_player_id.other().get_head_pos(grid);
 
-        let Some(agro_direction) = Astar::a_star_direction(grid, my_pos, enemy_pos) else {
-            return Direction::all().filter_not_crash(self.my_player_id, grid).next().unwrap_or(NegativeX)
-        };
 
-        if
-            my_pos.after_moved(agro_direction) == players_only_not_crash_direction(self.my_player_id.other(), grid) &&
-            let Some(dir) = Direction::all().filter_not_crash_into_head(self.my_player_id, grid).next()
-        {
-            return dir;
+        let agro = Astar::a_star_direction(grid, my_pos, enemy_pos);
+        let safest = ||Direction::all().filter_not_crash_into_head(self.my_player_id, grid);
+        let last_resort = ||Direction::all().filter_not_crash(self.my_player_id, grid);
+
+        if safest().any(|d|agro.is_some_and(|agro|agro==d)){
+            println!("agro");
+            agro.expect("just checked on previous line")
+        }else if let Some(safest) = safest().next(){
+            println!("safest");
+            safest
+        }else if let Some(last_resort) = last_resort().next() {
+            println!("last_resort");
+            last_resort
+        }else{
+            println!("Gave up");
+            Direction::up()
         }
-
-        agro_direction
     }
 }
