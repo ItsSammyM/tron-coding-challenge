@@ -24,11 +24,20 @@ impl<A: Bot, B: Bot> GameEngine<A, B> {
     pub fn print_current_game_state(&self){
         println!("{}", self.game_state)
     }
-    pub fn run_game(&mut self) {
-        self.print_current_game_state();
-        while self.go_to_next_frame() {
+    pub fn run_game(&mut self) -> GameOver {
+        #[cfg(not(feature = "no_print"))]
+        {
+            self.print_current_game_state();
+            while self.go_to_next_frame() {
+                self.print_current_game_state();
+            }
             self.print_current_game_state();
         }
-        self.print_current_game_state();
+        #[cfg(feature = "no_print")]
+        {
+            while self.go_to_next_frame() {}
+        }
+
+        self.game_state.game_over.expect("Game can't end without a winner or a draw")
     }
 }

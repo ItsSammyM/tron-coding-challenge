@@ -3,5 +3,13 @@ name = "tron-coding-challenge"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = []
+random_start = []
+sample_games = []
+no_print = []
+all = ["random_start", "sample_games", "no_print"]
+
 [dependencies]
 rand = "0.10.0"
+regex = "1.12.3"

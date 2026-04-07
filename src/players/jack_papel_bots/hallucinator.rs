@@ -38,8 +38,6 @@ impl Bot for Hallucinator {
 
         // We really couldn't generate a path to the fruit??
         // Damn. We cooked. Better luck next turn.
-        println!("hallucinator: could not find path to fruit after {} retries. Giving up.", retries);
-        
         self.ideal_directions(game_state).next()
             .or_else(|| self.not_instant_crash_directions(game_state).next())
             .unwrap_or(Direction::NegativeX)

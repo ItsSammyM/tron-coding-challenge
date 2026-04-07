@@ -184,9 +184,6 @@ impl SimpleSpaceFillBot{
             .iter()
             .max_by(|a,b|a.y().cmp(&b.y()))?;
 
-        println!("{:?}", up_most_y.y());
-        println!("{:?}", from.y());
-
         Direction::all()
             .map(|direction|{
                 (

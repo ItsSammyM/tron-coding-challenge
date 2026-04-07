@@ -87,8 +87,6 @@ impl Bot for RipAndTear {
                 };
 
                 if pathfind(my_pos, other_pos, grid).is_some() {
-                    println!("rip_and_tear: escaping");
-
                     if 
                         let Some(direction) = escape_plan &&
                         let Some(next_pos) = my_pos.after_moved(direction) &&
@@ -126,7 +124,6 @@ impl Bot for RipAndTear {
                     }
                 } else {
                     // Follow the right wall to fill the space.
-                    println!("rip_and_tear: filling");
                     let direction = game_state.current_grid().player_head_direction(self.my_player_id);
 
                     let available_directions = self.ideal_non_hole_directions(game_state).collect::<Vec<_>>();
