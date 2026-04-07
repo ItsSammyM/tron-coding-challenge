@@ -10,7 +10,7 @@ fn main() {
     use players::stardustz_bots::SimpleSpaceFillBot;
     use players::human_controlled_bot::HumanControlledBot;
 
-    let mut game: GameEngine<HumanControlledBot, StardustzBot> = GameEngine::new();
+    let mut game: GameEngine<StardustzBot, ExampleBot> = GameEngine::new();
 
     game.run_game();
 }
