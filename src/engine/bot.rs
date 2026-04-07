@@ -15,7 +15,7 @@ pub trait BotActionGenerator {
     fn generate_next_action(&mut self, game_state: &GameState) -> Direction;
 }
 
-pub struct BuildBot<B: Bot>{
+pub struct BuildBot<B: Bot + 'static>{
     _marker: PhantomData<B>
 }
 impl<B: Bot + 'static> BuildBot<B> {

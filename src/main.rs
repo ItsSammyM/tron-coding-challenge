@@ -8,25 +8,21 @@ mod engine;
 mod players;
 
 fn main() {
-    one_game(
-        Player::new_player(BuildBot::<ExampleBot>::new()),
-        Player::new_player(BuildBot::<HumanControlledBot>::new())
-    );
+    one_test_game::<ExampleBot, HumanControlledBot>();
 
-    // let players = vec![
-    //     Player::new_player(BuildBot::<ExampleBot>::new()),
-    //     Player::new_player(BuildBot::<HumanControlledBot>::new()),
-    // ];
-
-    // run_game(players);
+    // run_game(vec![
+    //     Player::new_player::<ExampleBot>(),
+    //     Player::new_player::<HumanControlledBot>(),
+    // ]);
 }
 
-fn one_game(a: Player, b: Player){
-    GameEngine::new(a.bot_factory, b.bot_factory).run_game();
+fn one_test_game<O: Bot + 'static, X: Bot + 'static>(){
+    GameEngine::new(BuildBot::<O>::new(), BuildBot::<X>::new()).run_game();
 }
 
 fn run_game(players: Vec<Player>){
     //code to make every player face eacother 6 times and track points
+    todo!()
 }
 
 struct Player{
@@ -35,10 +31,10 @@ struct Player{
     bot_factory: Box<dyn BotFactory>
 }
 impl Player{
-    fn new_player(bot_factory: Box<dyn BotFactory>) -> Self {
+    fn new_player<B: Bot + 'static>() -> Self {
         Self {
             name: "todo".to_string(),
-            bot_factory,
+            bot_factory: BuildBot::<B>::new(),
             points: 0.0
         }
     }
