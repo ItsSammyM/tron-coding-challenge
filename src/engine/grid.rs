@@ -149,8 +149,7 @@ impl Grid {
     pub fn player_head_direction(&self, id: PlayerId)->Direction{
         *self.0
             .iter()
-            .enumerate()
-            .find_map(|(_, cell)|{
+            .find_map(|cell|{
                 let GridCell::Head(player_id, direction) = cell else {return None};
                 if *player_id != id {return None};
                 Some(direction)
@@ -177,7 +176,7 @@ impl std::fmt::Display for Grid {
                 let cell = self.try_get_cell((col, row)).expect("in bounds");
                 string += &format!("{}", cell);
             }
-            string += &format!("\n");
+            string += "\n";
         }
         write!(f, "{}", string)
     }

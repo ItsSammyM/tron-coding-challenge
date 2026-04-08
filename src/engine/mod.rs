@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use crate::engine::prelude::*;
 use std::fmt::Display;
 

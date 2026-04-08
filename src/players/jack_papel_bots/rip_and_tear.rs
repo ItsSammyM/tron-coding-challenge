@@ -1,4 +1,4 @@
-use crate::{engine::prelude::*, players::jack_papel_bots::{JackBot, a_star_pathfinding, base_heuristic, direction_to, find_farthest_point, freedom_eater::FreedomEater, get_neighbors, pathfind, shortest_distance}};
+use crate::{engine::prelude::*, players::jack_papel_bots::{JackBot, a_star_pathfinding, base_heuristic, find_farthest_point, get_neighbors, pathfind, shortest_distance}};
 
 // This bot calculates the farthest reachable point from the other bot,
 // assumes they are trying to go there, and tries to cut them off by 

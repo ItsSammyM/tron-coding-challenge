@@ -72,7 +72,7 @@ impl Competition{
         x: &mut CompetitionPlayer
     ) {
         let settings = GameSettings { debug_mode: false, random_spawns: self.0.random_spawns };
-        match GameEngine::new(&o.bot_factory, &x.bot_factory, settings).run_game() {
+        match GameEngine::new(o.bot_factory.as_ref(), x.bot_factory.as_ref(), settings).run_game() {
             GameOver::Winner { player_who_won: PlayerId::O } => {
                 o.wins += 1;
                 x.loses += 1;
@@ -111,7 +111,7 @@ impl CompetitionPlayer{
     pub fn new_player<B: Bot + 'static>() -> Self {
         Self {
             name: get_bot_name::<B>(),
-            bot_factory: BuildBot::<B>::new(),
+            bot_factory: BuildBot::<B>::new_boxed(),
             wins: 0,
             loses: 0,
             draws: 0,

@@ -104,7 +104,7 @@ fn shortest_distance(start: GridPosition, goal: GridPosition, grid: &Grid) -> Op
 }
 
 // This is a modified A* algorithm that finds the farthest reachable point from the current position.
-pub fn find_farthest_point(start: GridPosition, game_state: &GameState) -> CellScore {
+fn find_farthest_point(start: GridPosition, game_state: &GameState) -> CellScore {
     use std::collections::{BinaryHeap, HashMap};
     let grid = game_state.current_grid();
 
