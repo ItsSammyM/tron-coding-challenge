@@ -16,7 +16,7 @@ impl Competition{
             }
         }
 
-        players.sort_by(|a,b|b.points.total_cmp(&a.points));
+        players.sort_by(|a,b|b.points().total_cmp(&a.points()));
         for player in players {
             println!("{}", player);
         }
@@ -40,16 +40,16 @@ impl Competition{
     ) {
         match GameEngine::new(&o.bot_factory, &x.bot_factory, false).run_game_get_result() {
             GameOver::Winner { player_who_won: PlayerId::O } => {
-                o.points += 1.0;
-                x.points -= 1.0;
+                o.wins += 1;
+                x.loses += 1;
             },
             GameOver::Winner { player_who_won: PlayerId::X } => {
-                o.points -= 1.0;
-                x.points += 1.0;
+                o.loses += 1;
+                x.wins += 1;
             },
             GameOver::Draw => {
-                o.points -= 0.5;
-                x.points -= 0.5;
+                o.draws += 1;
+                x.draws += 1;
             },
         }
     }
@@ -58,20 +58,27 @@ impl Competition{
 
 pub struct CompetitionPlayer{
     name: String,
-    points: f32,
-    bot_factory: Box<dyn BotFactory>
+    bot_factory: Box<dyn BotFactory>,
+    wins: u16,
+    loses: u16,
+    draws: u16
 }
 impl CompetitionPlayer{
     pub fn new_player<B: Bot + 'static>() -> Self {
         Self {
             name: std::any::type_name::<B>().split_at("tron_coding_challenge::players::".len()).1.to_string(),
             bot_factory: BuildBot::<B>::new(),
-            points: 0.0
+            wins: 0,
+            loses: 0,
+            draws: 0,
         }
+    }
+    pub fn points(&self) -> f32 {
+        self.wins as f32  - self.loses as f32 - (self.draws as f32 * 0.5f32)
     }
 }
 impl Display for CompetitionPlayer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}: {}", self.name, self.points)
+        write!(f, "{}: Points: {}, Wins: {}, Loses: {}, Draws: {}", self.name, self.points(), self.wins, self.loses, self.draws)
     }
 }
