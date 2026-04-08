@@ -1,3 +1,5 @@
+#![allow(clippy::large_enum_variant, reason = "It's not that serious")]
+
 use regex::Regex;
 
 use crate::competition::CompetitionSettings;
@@ -95,8 +97,8 @@ fn sample_games<O: Bot, X: Bot>() {
 
 fn run_test_game<O: Bot, X: Bot>() -> GameOver{
     GameEngine::new(
-        &BuildBot::<O>::new(),
-        &BuildBot::<X>::new(),
+        BuildBot::<O>::new_boxed().as_ref(),
+        BuildBot::<X>::new_boxed().as_ref(),
         GameSettings {
             debug_mode: false,
             random_spawns: RANDOM_SPAWNS
@@ -106,8 +108,8 @@ fn run_test_game<O: Bot, X: Bot>() -> GameOver{
 
 fn run_test_game_print<O: Bot, X: Bot>(){
     GameEngine::new(
-        &BuildBot::<O>::new(),
-        &BuildBot::<X>::new(),
+        BuildBot::<O>::new_boxed().as_ref(),
+        BuildBot::<X>::new_boxed().as_ref(),
         GameSettings {
             debug_mode: true,
             random_spawns: RANDOM_SPAWNS

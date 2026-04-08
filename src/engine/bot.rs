@@ -32,7 +32,7 @@ pub struct BuildBot<B: Bot>{
     _marker: PhantomData<B>
 }
 impl<B: Bot> BuildBot<B> {
-    pub fn new() -> Box<dyn BotFactory> {
+    pub fn new_boxed() -> Box<dyn BotFactory> {
         Box::new(Self{_marker: Default::default()})
     }
 }

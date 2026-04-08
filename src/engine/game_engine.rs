@@ -13,7 +13,7 @@ pub struct GameSettings {
 }
 
 impl GameEngine {
-    pub fn new(o: &Box<dyn BotFactory>, x: &Box<dyn BotFactory>, settings: GameSettings) -> Self {
+    pub fn new(o: &dyn BotFactory, x: &dyn BotFactory, settings: GameSettings) -> Self {
         Self {
             game_state: GameState::new(settings),
             o: o.new_bot(BotArgs::new(PlayerId::O)),

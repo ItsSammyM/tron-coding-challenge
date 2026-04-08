@@ -45,7 +45,7 @@ impl GridPosition {
 
 
     pub fn manhattan_distance(&self, other: &Self)->u8{
-        (self.x() as i8 - other.x() as i8).abs() as u8 + (self.y() as i8 - other.y() as i8).abs() as u8
+        (self.x() as i8 - other.x() as i8).unsigned_abs() + (self.y() as i8 - other.y() as i8).unsigned_abs()
     }
     /// returns an iterator over all neighboring positions
     pub fn neighbors(&self)->impl Iterator<Item = GridPosition>{
@@ -55,7 +55,7 @@ impl GridPosition {
     /// returns an iterator over all neighboring positions
     pub fn neighbors_with_direction(&self)->impl Iterator<Item = (Direction, GridPosition)>{
         Direction::all()
-            .filter_map(|direction|if let Some(pos) = self.after_moved(direction){Some((direction, pos))}else{None})
+            .filter_map(|direction| self.after_moved(direction).map(|p| (direction, p)))
     }
     /// returns a grid position that neighbors self and is in the direction given. None if out of bounds
     pub fn after_moved(&self, direction: Direction) -> Option<Self> {
