@@ -14,7 +14,7 @@ WARNING! Example bot heavily uses the iterator feature of rust which may not be 
 - Each cell of the grid can either be the head of either player, the tail of either player, or empty
 - If your bots head ever collides with a tail, or the edge of the grid, or another players head, you lose. If both players do this at the same time it is a draw. (Colliding here means your bot inputs a direction that would cause an overlap)
 - Your bot cannot require human input after the program starts executing
-- Your bot will go against every other bot 6 times (3 times on each side). Winning gives you 1 point, losing gives you -1 points, and drawing gives you -0.5 points.
+- Your bot will go against every other bot 6 times (3 times as player O, 3 times as player X). Winning gives you 1 point, losing gives you -1 points, and drawing gives you -0.5 points.
 
 
 ## Your bot must implement the bot trait
