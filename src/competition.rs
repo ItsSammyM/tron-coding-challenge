@@ -89,8 +89,10 @@ impl Competition{
     }
 }
 
+// Users using CMD might see gunk in the terminal...
+// but I don't want to add a dependency just to clear the terminal.
+// If you're reading this, use powershell (or linux!).
 fn clear_terminal_lines(num_lines: usize) {
-    #[cfg(target_os = "linux")] // Not guaranteed to work on CMD, but Linux supports this.
     for _ in 0..num_lines {
         print!("\x1B[1A\x1B[2K");
     }
