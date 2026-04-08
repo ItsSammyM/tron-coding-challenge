@@ -64,7 +64,7 @@ pub struct CompetitionPlayer{
 impl CompetitionPlayer{
     pub fn new_player<B: Bot + 'static>() -> Self {
         Self {
-            name: "todo".to_string(),
+            name: std::any::type_name::<B>().split_at("tron_coding_challenge::players::".len()).1.to_string(),
             bot_factory: BuildBot::<B>::new(),
             points: 0.0
         }

@@ -8,7 +8,8 @@ mod players;
 mod competition;
 
 fn main() {
-    run_test_game_print::<example_bot::ExampleBot, human_controlled_bot::HumanControlledBot>();
+    // This next line is for testing, you can use it to test your bot by uncommenting it and commenting out the competition code
+    // run_test_game_print::<example_bot::ExampleBot, human_controlled_bot::HumanControlledBot>();
 
     Competition::run_and_print(vec![
         CompetitionPlayer::new_player::<example_bot::ExampleBot>(),
