@@ -6,12 +6,11 @@ use crate::{engine::prelude::*, players::jack_papel_bots::{JackBot, a_star_pathf
 // but isn't closer to the other bot than to us.
 pub struct RipAndTear {
     my_player_id: PlayerId,
-    debug_mode: bool
 }
 
 impl Bot for RipAndTear {
     fn new(args: BotArgs) -> Self {
-        Self { my_player_id: args.my_player(), debug_mode: args.debug_mode() }
+        Self { my_player_id: args.my_player() }
     }
 
     fn next_action(&mut self, game_state: &GameState) -> Direction {
@@ -86,7 +85,7 @@ impl Bot for RipAndTear {
                 };
 
                 if pathfind(my_pos, other_pos, grid).is_some() {
-                    if self.debug_mode {
+                    if game_state.settings.debug_mode {
                         println!("rip_and_tear: escaping");
                     }
 
@@ -127,7 +126,7 @@ impl Bot for RipAndTear {
                     }
                 } else {
                     // Follow the right wall to fill the space.
-                    if self.debug_mode {
+                    if game_state.settings.debug_mode {
                         println!("rip_and_tear: filling");
                     }
                     let direction = game_state.current_grid().player_head_direction(self.my_player_id);

@@ -3,12 +3,6 @@ name = "tron-coding-challenge"
 version = "0.1.0"
 edition = "2024"
 
-[features]
-default = []
-random_spawns = []
-sample = ["random_spawns"]
-competition = []
-
 [dependencies]
 rand = "0.10.0"
 regex = "1.12.3"

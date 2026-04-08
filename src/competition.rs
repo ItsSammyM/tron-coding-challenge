@@ -1,18 +1,23 @@
 use std::fmt::Display;
 
-use crate::engine::prelude::*;
+use crate::engine::{game_engine::GameSettings, prelude::*};
 
-pub struct Competition;
+pub struct Competition(CompetitionSettings);
 
 impl Competition{
+    pub fn new(settings: CompetitionSettings) -> Self {
+        Self(settings)
+    }
+
     pub fn run_and_print(
+        &self,
         mut players: Vec<CompetitionPlayer>
     ) {
         
         for i in 0..players.len(){
             for j in 0..players.len() {
                 let Some([a, b]) = players.get_disjoint_mut([i, j]).ok() else {continue};
-                Self::run_competition_round(a, b);
+                self.run_competition_round(a, b);
             }
         }
 
@@ -23,22 +28,25 @@ impl Competition{
     }
 
     fn run_competition_round(
+        &self,
         a: &mut CompetitionPlayer,
         b: &mut CompetitionPlayer
     ){
         for _ in 0..3 {
-            Self::run_one_competition_game_add_points(b, a)
+            self.run_one_competition_game_add_points(b, a)
         }
         for _ in 0..3 {
-            Self::run_one_competition_game_add_points(a, b)
+            self.run_one_competition_game_add_points(a, b)
         }
     }
 
     fn run_one_competition_game_add_points(
+        &self, 
         o: &mut CompetitionPlayer,
         x: &mut CompetitionPlayer
     ) {
-        match GameEngine::new(&o.bot_factory, &x.bot_factory, false).run_game() {
+        let settings = GameSettings { debug_mode: false, random_spawns: self.0.random_spawns };
+        match GameEngine::new(&o.bot_factory, &x.bot_factory, settings).run_game() {
             GameOver::Winner { player_who_won: PlayerId::O } => {
                 o.points += 1.0;
                 x.points -= 1.0;
@@ -55,6 +63,9 @@ impl Competition{
     }
 }
 
+pub struct CompetitionSettings {
+    pub random_spawns: bool,
+}
 
 pub struct CompetitionPlayer{
     name: String,

@@ -5,12 +5,19 @@ pub struct GameEngine {
     o: Box<dyn BotActionGenerator>,
     x: Box<dyn BotActionGenerator>,
 }
+
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct GameSettings {
+    pub debug_mode: bool,
+    pub random_spawns: bool,
+}
+
 impl GameEngine {
-    pub fn new(o: &Box<dyn BotFactory>, x: &Box<dyn BotFactory>, debug_mode: bool) -> Self {
+    pub fn new(o: &Box<dyn BotFactory>, x: &Box<dyn BotFactory>, settings: GameSettings) -> Self {
         Self {
-            game_state: GameState::new(),
-            o: o.new_bot(BotArgs::new(PlayerId::O, debug_mode)),
-            x: x.new_bot(BotArgs::new(PlayerId::X, debug_mode)),
+            game_state: GameState::new(settings),
+            o: o.new_bot(BotArgs::new(PlayerId::O)),
+            x: x.new_bot(BotArgs::new(PlayerId::X)),
         }
     }
 }

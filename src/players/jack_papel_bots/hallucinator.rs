@@ -8,7 +8,6 @@ use crate::{engine::prelude::*, players::jack_papel_bots::{JackBot, pathfind}};
 /// its position), it generates a new location for the next fruit.
 pub struct Hallucinator {
     my_player_id: PlayerId,
-    debug_mode: bool,
     fruit_location: GridPosition,
 }
 
@@ -16,7 +15,6 @@ impl Bot for Hallucinator {
     fn new(args: BotArgs) -> Self {
         Hallucinator {
             my_player_id: args.my_player(),
-            debug_mode: args.debug_mode(),
             fruit_location: Self::generate_initial_fruit_location(),
         }
     }
@@ -40,7 +38,7 @@ impl Bot for Hallucinator {
 
         // We really couldn't generate a path to the fruit??
         // Damn. We cooked. Better luck next turn.
-        if self.debug_mode {
+        if game_state.settings.debug_mode {
             println!("hallucinator: could not find path to fruit after {} retries. Giving up.", retries);
         }
 

@@ -1,54 +1,61 @@
-#[cfg(all(feature = "competition", feature = "sample"))]
-compile_error!("""Cannot have both the 'competition' and 'sample' features enabled at the same time. Please choose one or the other.""");
-
 use regex::Regex;
 
-use crate::engine::prelude::*;
+use crate::competition::CompetitionSettings;
+use crate::engine::game_engine::GameSettings;
+use crate::players::example_bot::ExampleBot;
+use crate::{engine::prelude::*, players::human_controlled_bot::HumanControlledBot};
 
-#[cfg(feature = "competition")]
 use crate::players::*;
-#[cfg(feature = "competition")]
 use competition::{Competition, CompetitionPlayer};
 
 mod engine;
 mod players;
 mod competition;
 
-/// To test your bot, set either OBot or XBot to your bot and run `cargo run`.
-/// 
-/// If you want to compare how well your bot does against another bot on average,
-/// you can take a sample of 100 games using `cargo run --features=sample`.
-/// 
-/// If you want to run a full competition between every bot, run `cargo run --features=competition`.
-/// Don't forget to add your bot to the list of competitors!
+/// Switch this to your desired mode for testing!
+const MODE: Mode = Mode::Test;
+/// If your bot is deterministic, you can set this in order to test different starting positions.
+pub const RANDOM_SPAWNS: bool = true;
+
+// Set these to your desired bots for testing!
+/// The bot controlling player "O"
+type OBot = HumanControlledBot;
+/// The bot controlling player "X"
+type XBot = ExampleBot;
+
 fn main() {
-    use players::human_controlled_bot::HumanControlledBot;
-    use players::example_bot::ExampleBot;
-
-    type OBot = HumanControlledBot;
-    type XBot = ExampleBot;
-
-    Regex::new("").unwrap().replace("", "");
-
-    #[cfg(all(not(feature = "sample"), not(feature = "competition")))]
-    run_test_game_print::<OBot, XBot>();
-
-    #[cfg(feature = "sample")]
-    sample_games::<OBot, XBot>();
-
-    #[cfg(feature = "competition")]
-    Competition::run_and_print(vec![
-        CompetitionPlayer::new_player::<example_bot::ExampleBot>(),
-        CompetitionPlayer::new_player::<bot_template::BotTemplate>(),
-        CompetitionPlayer::new_player::<stardustz_bots::StardustzBot>(),
-        CompetitionPlayer::new_player::<jack_papel_bots::hallucinator::Hallucinator>(),
-        CompetitionPlayer::new_player::<jack_papel_bots::rip_and_tear::RipAndTear>(),
-        CompetitionPlayer::new_player::<jack_papel_bots::freedom_eater::FreedomEater>(),
-        // Add your bot here!
-    ]);
+    match MODE {
+        Mode::Test => run_test_game_print::<OBot, XBot>(),
+        Mode::Sample => sample_games::<OBot, XBot>(),
+        Mode::Competition => {
+            let competition = Competition::new(CompetitionSettings {
+                random_spawns: RANDOM_SPAWNS
+            });
+            
+            competition.run_and_print(vec![
+                CompetitionPlayer::new_player::<example_bot::ExampleBot>(),
+                CompetitionPlayer::new_player::<bot_template::BotTemplate>(),
+                CompetitionPlayer::new_player::<stardustz_bots::StardustzBot>(),
+                CompetitionPlayer::new_player::<jack_papel_bots::hallucinator::Hallucinator>(),
+                CompetitionPlayer::new_player::<jack_papel_bots::rip_and_tear::RipAndTear>(),
+                CompetitionPlayer::new_player::<jack_papel_bots::freedom_eater::FreedomEater>(),
+                // Add your bot here!
+            ])
+        },
+    }
 }
 
-#[cfg(feature = "sample")]
+/// The mode to run the game in.
+#[allow(unused)]
+enum Mode {
+    /// Run a single game with debug output. Useful for iterating on your bot.
+    Test,
+    /// Run 100 games and print the results. Useful for testing how well your bot does against another bot on average.
+    Sample,
+    /// Run a full competition between every bot. Useful for seeing how your bot does compared to all other bots.
+    Competition,
+}
+
 fn sample_games<O: Bot + 'static, X: Bot + 'static>() {
     let mut o_games = 0;
     let mut draw_games = 0;
@@ -86,16 +93,24 @@ fn sample_games<O: Bot + 'static, X: Bot + 'static>() {
     println!("Draw: {} ({:.2}%)", draw_games, draw_games as f64 / total_games as f64 * 100.0);
 }
 
-#[cfg(feature = "sample")]
 fn run_test_game<O: Bot + 'static, X: Bot + 'static>() -> GameOver{
-    GameEngine::new(&BuildBot::<O>::new(), &BuildBot::<X>::new(), false).run_game()
+    GameEngine::new(
+        &BuildBot::<O>::new(),
+        &BuildBot::<X>::new(),
+        GameSettings {
+            debug_mode: false,
+            random_spawns: RANDOM_SPAWNS
+        }
+    ).run_game()
 }
 
-#[cfg(not(feature = "sample"))]
 fn run_test_game_print<O: Bot + 'static, X: Bot + 'static>(){
     GameEngine::new(
         &BuildBot::<O>::new(),
         &BuildBot::<X>::new(),
-        true
+        GameSettings {
+            debug_mode: true,
+            random_spawns: RANDOM_SPAWNS
+        }
     ).run_game_print();
 }

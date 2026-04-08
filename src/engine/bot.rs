@@ -4,18 +4,14 @@ use crate::engine::prelude::*;
 
 #[derive(Debug, Clone, Copy)]
 pub struct BotArgs{
-    debug: bool,
     player: PlayerId
 }
 impl BotArgs{
-    pub fn new(player: PlayerId, debug: bool) -> Self {
-        Self { debug, player }
+    pub fn new(player: PlayerId) -> Self {
+        Self { player }
     }
     pub fn my_player(&self) -> PlayerId {
         self.player
-    }
-    pub fn debug_mode(&self) -> bool {
-        self.debug
     }
 }
 
