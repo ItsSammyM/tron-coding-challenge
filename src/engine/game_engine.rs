@@ -6,11 +6,11 @@ pub struct GameEngine {
     x: Box<dyn BotActionGenerator>,
 }
 impl GameEngine {
-    pub fn new(o: Box<dyn BotFactory>, x: Box<dyn BotFactory>) -> Self {
+    pub fn new(o: &Box<dyn BotFactory>, x: &Box<dyn BotFactory>, debug_mode: bool) -> Self {
         Self {
             game_state: GameState::new(),
-            o: o.new_bot(PlayerId::new_o()),
-            x: x.new_bot(PlayerId::new_x()),
+            o: o.new_bot(BotArgs::new(PlayerId::O, debug_mode)),
+            x: x.new_bot(BotArgs::new(PlayerId::X, debug_mode)),
         }
     }
 }
@@ -42,18 +42,22 @@ impl GameEngine {
     pub fn print_current_game_state(&self){
         println!("{}", self.game_state)
     }
-
-    pub fn run_game(&mut self) -> GameOver {
-        loop {
-            #[cfg(not(feature = "no_print"))]
+    pub fn run_game_print(&mut self) -> GameOver {
+        loop{
             self.print_current_game_state();
 
-            if let Some(game_over) = self.go_to_next_frame().game_over() {
-                #[cfg(not(feature = "no_print"))]
+            if let Some(out) = self.go_to_next_frame().game_over() {
                 self.print_current_game_state();
-
-                return game_over
+                return out;
+            }
+        }
+    }
+    pub fn run_game(&mut self) -> GameOver {
+        loop{
+            if let Some(out) = self.go_to_next_frame().game_over() {
+                return out;
             }
         }
     }
 }
+

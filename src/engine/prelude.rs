@@ -14,3 +14,5 @@ pub use super::bot::Bot;
 pub use super::bot::BuildBot;
 pub use super::bot::BotFactory;
 pub use super::bot::BotActionGenerator;
+
+pub use super::bot::BotArgs;

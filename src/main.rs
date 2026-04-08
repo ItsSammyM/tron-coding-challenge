@@ -1,9 +1,18 @@
+#[cfg(all(feature = "competition", feature = "sample"))]
+compile_error!("""Cannot have both the 'competition' and 'sample' features enabled at the same time. Please choose one or the other.""");
+
 use regex::Regex;
 
 use crate::engine::prelude::*;
 
+#[cfg(feature = "competition")]
+use crate::players::*;
+#[cfg(feature = "competition")]
+use competition::{Competition, CompetitionPlayer};
+
 mod engine;
 mod players;
+mod competition;
 
 fn main() {
     use players::human_controlled_bot::HumanControlledBot;
@@ -14,17 +23,30 @@ fn main() {
 
     Regex::new("").unwrap().replace("", "");
 
-    #[cfg(not(feature = "sample_games"))]
+    #[cfg(all(not(feature = "sample"), not(feature = "competition")))]
     {
-        one_test_game::<OBot, XBot>();
+        run_test_game_print::<OBot, XBot>();
     }
-    #[cfg(feature = "sample_games")]
+    #[cfg(feature = "sample")]
     {
         sample_games::<OBot, XBot>();
     }
+    #[cfg(feature = "competition")]
+    {
+        run_test_game_print::<example_bot::ExampleBot, human_controlled_bot::HumanControlledBot>();
+
+        Competition::run_and_print(vec![
+            CompetitionPlayer::new_player::<example_bot::ExampleBot>(),
+            CompetitionPlayer::new_player::<bot_template::BotTemplate>(),
+            CompetitionPlayer::new_player::<stardustz_bots::StardustzBot>(),
+            CompetitionPlayer::new_player::<jack_papel_bots::hallucinator::Hallucinator>(),
+            CompetitionPlayer::new_player::<jack_papel_bots::rip_and_tear::RipAndTear>(),
+            CompetitionPlayer::new_player::<jack_papel_bots::freedom_eater::FreedomEater>(),
+        ]);
+    }
 }
 
-#[cfg(feature = "sample_games")]
+#[cfg(feature = "sample")]
 fn sample_games<O: Bot + 'static, X: Bot + 'static>() {
     let mut o_games = 0;
     let mut draw_games = 0;
@@ -38,7 +60,7 @@ fn sample_games<O: Bot + 'static, X: Bot + 'static>() {
     println!("Simulating 100 games between {} and {}...", o_name, x_name);
 
     for i in 0..100 {
-        match one_test_game::<O, X>() {
+        match run_test_game::<O, X>() {
             GameOver::Winner { player_who_won: PlayerId::O } => {
                 println!("Round {}: {}", i + 1, o_name);
                 o_games += 1;
@@ -62,26 +84,16 @@ fn sample_games<O: Bot + 'static, X: Bot + 'static>() {
     println!("Draw: {} ({:.2}%)", draw_games, draw_games as f64 / total_games as f64 * 100.0);
 }
 
-fn one_test_game<O: Bot + 'static, X: Bot + 'static>() -> GameOver{
-    GameEngine::new(BuildBot::<O>::new(), BuildBot::<X>::new()).run_game()
+#[cfg(feature = "sample")]
+fn run_test_game<O: Bot + 'static, X: Bot + 'static>() -> GameOver{
+    GameEngine::new(&BuildBot::<O>::new(), &BuildBot::<X>::new(), false).run_game()
 }
 
-fn run_game(players: Vec<Player>){
-    //code to make every player face eacother 6 times and track points
-    todo!()
-}
-
-struct Player{
-    name: String,
-    points: f32,
-    bot_factory: Box<dyn BotFactory>
-}
-impl Player{
-    fn new_player<B: Bot + 'static>() -> Self {
-        Self {
-            name: "todo".to_string(),
-            bot_factory: BuildBot::<B>::new(),
-            points: 0.0
-        }
-    }
+#[cfg(not(feature = "sample"))]
+fn run_test_game_print<O: Bot + 'static, X: Bot + 'static>(){
+    GameEngine::new(
+        &BuildBot::<O>::new(),
+        &BuildBot::<X>::new(),
+        true
+    ).run_game_print();
 }

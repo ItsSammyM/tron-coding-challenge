@@ -5,10 +5,9 @@ edition = "2024"
 
 [features]
 default = []
-random_start = []
-sample_games = []
-no_print = []
-all = ["random_start", "sample_games", "no_print"]
+random_spawns = []
+sample = ["random_spawns"]
+competition = []
 
 [dependencies]
 rand = "0.10.0"

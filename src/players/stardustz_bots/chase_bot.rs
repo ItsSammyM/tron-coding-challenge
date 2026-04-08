@@ -5,8 +5,8 @@ pub struct ChaseBot{
 }
 
 impl Bot for ChaseBot{
-    fn new(my_player_id: PlayerId)->Self {
-        ChaseBot{my_player_id}
+    fn new(args: BotArgs)->Self {
+        ChaseBot{my_player_id: args.my_player()}
     }
 
     fn next_action(&mut self, game_state: &GameState) -> Direction {

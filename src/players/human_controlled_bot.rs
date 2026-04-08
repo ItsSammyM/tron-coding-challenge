@@ -3,7 +3,7 @@ use crate::engine::prelude::*;
 pub struct HumanControlledBot;
 
 impl Bot for HumanControlledBot {
-    fn new(_my_player_id: PlayerId) -> Self {
+    fn new(_: BotArgs) -> Self {
         HumanControlledBot
     }
 
