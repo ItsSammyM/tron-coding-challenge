@@ -1,30 +1,116 @@
-use crate::engine::prelude::*;
+use regex::Regex;
+
+use crate::competition::CompetitionSettings;
+use crate::engine::game_engine::GameSettings;
+use crate::players::example_bot::ExampleBot;
+use crate::{engine::prelude::*, players::human_controlled_bot::HumanControlledBot};
+
 use crate::players::*;
-use competition::Competition;
-use competition::CompetitionPlayer;
+use competition::{Competition, CompetitionPlayer};
 
 mod engine;
 mod players;
 mod competition;
 
-fn main() {
-    // This next line is for testing, you can use it to test your bot by uncommenting it and commenting out the competition code
-    // run_test_game_print::<example_bot::ExampleBot, human_controlled_bot::HumanControlledBot>();
+/// Switch this to your desired mode for testing!
+const MODE: Mode = Mode::Test;
+/// If your bot is deterministic, you can set this in order to test different starting positions.
+pub const RANDOM_SPAWNS: bool = true;
 
-    Competition::run_and_print(vec![
-        CompetitionPlayer::new_player::<example_bot::ExampleBot>(),
-        CompetitionPlayer::new_player::<bot_template::BotTemplate>(),
-        CompetitionPlayer::new_player::<stardustz_bots::StardustzBot>(),
-        CompetitionPlayer::new_player::<jack_papel_bots::hallucinator::Hallucinator>(),
-        CompetitionPlayer::new_player::<jack_papel_bots::rip_and_tear::RipAndTear>(),
-        CompetitionPlayer::new_player::<jack_papel_bots::freedom_eater::FreedomEater>(),
-    ]);
+// Set these to your desired bots for testing!
+/// The bot controlling player "O"
+type OBot = HumanControlledBot;
+/// The bot controlling player "X"
+type XBot = ExampleBot;
+
+fn main() {
+    match MODE {
+        Mode::Test => run_test_game_print::<OBot, XBot>(),
+        Mode::Sample => sample_games::<OBot, XBot>(),
+        Mode::Competition => {
+            let competition = Competition::new(CompetitionSettings {
+                random_spawns: RANDOM_SPAWNS
+            });
+            
+            competition.run_and_print(vec![
+                CompetitionPlayer::new_player::<example_bot::ExampleBot>(),
+                CompetitionPlayer::new_player::<bot_template::BotTemplate>(),
+                CompetitionPlayer::new_player::<stardustz_bots::StardustzBot>(),
+                CompetitionPlayer::new_player::<jack_papel_bots::hallucinator::Hallucinator>(),
+                CompetitionPlayer::new_player::<jack_papel_bots::rip_and_tear::RipAndTear>(),
+                CompetitionPlayer::new_player::<jack_papel_bots::freedom_eater::FreedomEater>(),
+                // Add your bot here!
+            ])
+        },
+    }
+}
+
+/// The mode to run the game in.
+#[allow(unused)]
+enum Mode {
+    /// Run a single game with debug output. Useful for iterating on your bot.
+    Test,
+    /// Run 100 games and print the results. Useful for testing how well your bot does against another bot on average.
+    Sample,
+    /// Run a full competition between every bot. Useful for seeing how your bot does compared to all other bots.
+    Competition,
+}
+
+fn sample_games<O: Bot + 'static, X: Bot + 'static>() {
+    let mut o_games = 0;
+    let mut draw_games = 0;
+    let mut x_games = 0;
+
+    let regex = Regex::new(r"([a-zA-Z0-9_]*::)*").unwrap();
+
+    let o_name = regex.replace(std::any::type_name::<O>(), "");
+    let x_name = regex.replace(std::any::type_name::<X>(), "");
+
+    println!("Simulating 100 games between {} and {}...", o_name, x_name);
+
+    for i in 0..100 {
+        match run_test_game::<O, X>() {
+            GameOver::Winner { player_who_won: PlayerId::O } => {
+                println!("Round {}: {}", i + 1, o_name);
+                o_games += 1;
+            },
+            GameOver::Winner { player_who_won: PlayerId::X } => {
+                println!("Round {}: {}", i + 1, x_name);
+                x_games += 1;
+            },
+            GameOver::Draw => {
+                println!("Round {}: Draw", i + 1);
+                draw_games += 1;
+            },
+        }
+    }
+
+    let total_games = o_games + draw_games + x_games;
+
+    println!("\nRan 100 simulations: {}\n", total_games);
+    println!("{}: {} ({:.2}%)", o_name, o_games, o_games as f64 / total_games as f64 * 100.0);
+    println!("{}: {} ({:.2}%)", x_name, x_games, x_games as f64 / total_games as f64 * 100.0);
+    println!("Draw: {} ({:.2}%)", draw_games, draw_games as f64 / total_games as f64 * 100.0);
+}
+
+fn run_test_game<O: Bot + 'static, X: Bot + 'static>() -> GameOver{
+    GameEngine::new(
+        &BuildBot::<O>::new(),
+        &BuildBot::<X>::new(),
+        GameSettings {
+            debug_mode: false,
+            random_spawns: RANDOM_SPAWNS
+        }
+    ).run_game()
 }
 
 fn run_test_game_print<O: Bot + 'static, X: Bot + 'static>(){
     GameEngine::new(
         &BuildBot::<O>::new(),
         &BuildBot::<X>::new(),
-        true
-    ).run_game_get_result_print();
+        GameSettings {
+            debug_mode: true,
+            random_spawns: RANDOM_SPAWNS
+        }
+    ).run_game_print();
 }

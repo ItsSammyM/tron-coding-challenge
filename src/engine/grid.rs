@@ -7,12 +7,27 @@ pub const GRID_SIZE: usize = 21;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Grid([GridCell; GRID_SIZE * GRID_SIZE]);
 impl Grid {
-    pub fn new_default() -> Self {
+    pub fn new_default(random_spawns: bool) -> Self {
         let mut out = Self([const { GridCell::Empty }; GRID_SIZE * GRID_SIZE]);
-        *out.try_get_cell_mut((9, 10)).expect("pos is in bounds") =
+
+        let (o_pos, x_pos) = if random_spawns {
+            let o_pos = (rand::random_range(0..GRID_SIZE), rand::random_range(0..GRID_SIZE));
+            let mut x_pos = (rand::random_range(0..GRID_SIZE), rand::random_range(0..GRID_SIZE));
+
+            while x_pos == o_pos {
+                x_pos = (rand::random_range(0..GRID_SIZE), rand::random_range(0..GRID_SIZE));
+            }
+
+            (o_pos, x_pos)
+        } else {
+            ((9, 10), (11, 10))
+        };
+
+        *out.try_get_cell_mut(o_pos).expect("pos is in bounds") =
             GridCell::Head(PlayerId::new_o(), Direction::NegativeX);
-        *out.try_get_cell_mut((11, 10)).expect("pos is in bounds") =
+        *out.try_get_cell_mut(x_pos).expect("pos is in bounds") =
             GridCell::Head(PlayerId::new_x(), Direction::PositiveX);
+
         out
     }
     pub fn next_grid(&self, o_choice: Direction, x_choice: Direction, next_frame: usize) -> NextFrameResult {

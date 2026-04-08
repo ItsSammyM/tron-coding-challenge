@@ -1,17 +1,19 @@
 use std::fmt::Display;
 
-use crate::engine::prelude::*;
+use crate::engine::{game_engine::GameSettings, prelude::*};
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct GameState {
     grid_history: Vec<Grid>,
     game_over: Option<GameOver>,
+    pub settings: GameSettings,
 }
 impl GameState {
-    pub fn new() -> Self {
+    pub fn new(settings: GameSettings) -> Self {
         Self {
-            grid_history: Vec::from([Grid::new_default()]),
+            grid_history: Vec::from([Grid::new_default(settings.random_spawns)]),
             game_over: None,
+            settings,
         }
     }
     /// gets the grid of the most recently generated frame
