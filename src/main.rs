@@ -56,7 +56,7 @@ enum Mode {
     Competition,
 }
 
-fn sample_games<O: Bot + 'static, X: Bot + 'static>() {
+fn sample_games<O: Bot, X: Bot>() {
     let mut o_games = 0;
     let mut draw_games = 0;
     let mut x_games = 0;
@@ -93,7 +93,7 @@ fn sample_games<O: Bot + 'static, X: Bot + 'static>() {
     println!("Draw: {} ({:.2}%)", draw_games, draw_games as f64 / total_games as f64 * 100.0);
 }
 
-fn run_test_game<O: Bot + 'static, X: Bot + 'static>() -> GameOver{
+fn run_test_game<O: Bot, X: Bot>() -> GameOver{
     GameEngine::new(
         &BuildBot::<O>::new(),
         &BuildBot::<X>::new(),
@@ -104,7 +104,7 @@ fn run_test_game<O: Bot + 'static, X: Bot + 'static>() -> GameOver{
     ).run_game()
 }
 
-fn run_test_game_print<O: Bot + 'static, X: Bot + 'static>(){
+fn run_test_game_print<O: Bot, X: Bot>(){
     GameEngine::new(
         &BuildBot::<O>::new(),
         &BuildBot::<X>::new(),

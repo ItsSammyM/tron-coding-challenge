@@ -15,7 +15,7 @@ impl BotArgs{
     }
 }
 
-pub trait Bot {
+pub trait Bot: 'static {
     fn new(args: BotArgs) -> Self;
     fn next_action(&mut self, game_state: &GameState) -> Direction;
 }
@@ -28,16 +28,16 @@ pub trait BotActionGenerator {
     fn generate_next_action(&mut self, game_state: &GameState) -> Direction;
 }
 
-pub struct BuildBot<B: Bot + 'static>{
+pub struct BuildBot<B: Bot>{
     _marker: PhantomData<B>
 }
-impl<B: Bot + 'static> BuildBot<B> {
+impl<B: Bot> BuildBot<B> {
     pub fn new() -> Box<dyn BotFactory> {
         Box::new(Self{_marker: Default::default()})
     }
 }
 
-impl<B: Bot + 'static> BotFactory for BuildBot<B> {
+impl<B: Bot> BotFactory for BuildBot<B> {
     fn new_bot(&self, args: BotArgs) -> Box<dyn BotActionGenerator> {
         Box::new(B::new(args))
     }
