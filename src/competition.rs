@@ -32,25 +32,13 @@ impl Competition{
             }
         }
 
-        // Scales points to be from -100 to 100.
-        // This way, no matter if we change REPEATS or the number of opponents,
-        // the points will always be in a consistent range.
-        let points_scale_factor = {
-            // Players don't fight against themselves, hence the minus 1.
-            let num_opponents = (players.len() - 1) as f32;
-            // Each pair plays REPEATS games, then switches sides for another REPEATS games.
-            let games_per_opponent = REPEATS as f32 * 2.0;
-
-            100.0 / num_opponents / games_per_opponent
-        };
-
         players.sort_by(|a,b|b.points().total_cmp(&a.points()));
 
         clear_terminal_lines(4);
         println!("Competition results:\n");
 
         for player in players {
-            println!("{}: {:.2} points.", player.name, player.points() * points_scale_factor);
+            println!("{}: {:.2} points.", player.name, player.points());
             println!("  - W / L / D : {} / {} / {}", player.wins, player.loses, player.draws);
         }
     }
