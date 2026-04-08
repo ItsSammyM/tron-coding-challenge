@@ -15,7 +15,7 @@ mod competition;
 /// Switch this to your desired mode for testing!
 const MODE: Mode = Mode::Test;
 /// If your bot is deterministic, you can set this in order to test different starting positions.
-pub const RANDOM_SPAWNS: bool = true;
+pub const RANDOM_SPAWNS: bool = false;
 
 // Set these to your desired bots for testing!
 /// The bot controlling player "O"
@@ -56,15 +56,18 @@ enum Mode {
     Competition,
 }
 
+pub fn get_bot_name<B: Bot>() -> String {
+    let regex = Regex::new(r"([a-zA-Z0-9_]*::)*").unwrap();
+    regex.replace(std::any::type_name::<B>(), "").to_string()
+}
+
 fn sample_games<O: Bot, X: Bot>() {
     let mut o_games = 0;
     let mut draw_games = 0;
     let mut x_games = 0;
 
-    let regex = Regex::new(r"([a-zA-Z0-9_]*::)*").unwrap();
-
-    let o_name = regex.replace(std::any::type_name::<O>(), "");
-    let x_name = regex.replace(std::any::type_name::<X>(), "");
+    let o_name = get_bot_name::<O>();
+    let x_name = get_bot_name::<X>();
 
     println!("Simulating 100 games between {} and {}...", o_name, x_name);
 
