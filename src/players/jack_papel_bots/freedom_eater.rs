@@ -1,5 +1,6 @@
 use crate::{engine::prelude::*, players::jack_papel_bots::{JackBot, find_farthest_point, pathfind}};
 
+/// Eats freedom.
 pub struct FreedomEater {
     my_player_id: PlayerId,
 }

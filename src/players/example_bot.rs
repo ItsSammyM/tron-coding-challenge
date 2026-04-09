@@ -1,5 +1,12 @@
 use crate::engine::prelude::*;
 
+/// An example bot implementation.
+/// 
+/// This bot tries to move in an ideal direction
+/// (a direction that doesn't result in immediately losing and also doesn't
+/// border the opponent's head), and if one is unavailable, it settles for a
+/// direction that just doesn't immediately lose, and if that's also
+/// unavailable, it just moves left.
 pub struct ExampleBot {
     my_player_id: PlayerId,
 }

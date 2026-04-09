@@ -1,9 +1,9 @@
 use crate::{engine::prelude::*, players::jack_papel_bots::{JackBot, a_star_pathfinding, base_heuristic, find_farthest_point, get_neighbors, pathfind, shortest_distance}};
 
-// This bot calculates the farthest reachable point from the other bot,
-// assumes they are trying to go there, and tries to cut them off by 
-// going to the point that is on the path to that point, is closest to us,
-// but isn't closer to the other bot than to us.
+/// This bot calculates the farthest reachable point from the other bot,
+/// assumes they are trying to go there, and tries to cut them off by 
+/// going to the point that is on the path to that point, is closest to us,
+/// but isn't closer to the other bot than to us.
 pub struct RipAndTear {
     my_player_id: PlayerId,
 }

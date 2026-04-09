@@ -6,6 +6,10 @@ pub struct GameEngine {
     x: Box<dyn BotActionGenerator>,
 }
 
+/// Settings for the game engine. Passed in when constructing a new GameEngine.
+/// 
+/// Your bot should only leave debug print statements when `debug_mode` is true.
+/// You can check this by calling `game_state.settings.debug_mode`.
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct GameSettings {
     pub debug_mode: bool,

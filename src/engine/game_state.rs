@@ -2,10 +2,12 @@ use std::fmt::Display;
 
 use crate::engine::{game_engine::GameSettings, prelude::*};
 
+/// The current state of the game.
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct GameState {
     grid_history: Vec<Grid>,
     game_over: Option<GameOver>,
+    /// Settings for the current game.
     pub settings: GameSettings,
 }
 impl GameState {
@@ -16,29 +18,31 @@ impl GameState {
             settings,
         }
     }
-    /// gets the grid of the most recently generated frame
+    /// Returns the current grid.
     pub fn current_grid(&self) -> &Grid {
         self.grid_history
             .last()
             .expect("game state must have at least 1 grid")
     }
-    /// starts at 0 and increases by 1 with each frame. This gets the time of the most recently generated frame
+    /// Returns the current frame index (that corresponds with the current grid).
+    /// The frame index starts at 0 on the first frame and increases by 1 with each new frame.
     pub fn current_time(&self) -> usize {
         self.grid_history
             .len()
             .checked_sub(1)
             .expect("game state must have at least 1 grid")
     }
-    pub fn grid(&self, time_since_start: usize) -> Option<&Grid> {
-        self.grid_history.get(time_since_start)
+    /// Returns the grid at a given frame index, or None if the frame hasn't happened yet.
+    pub fn grid(&self, frame_index: usize) -> Option<&Grid> {
+        self.grid_history.get(frame_index)
     }
+    /// Returns an iterator of all grids up to and including the current frame.
     pub fn grid_history(&self) -> impl Iterator<Item = &Grid> {
         self.grid_history.iter()
     }
     pub fn is_game_over(&self) -> bool {
         self.game_over.is_some()
     }
-    /// returns true if game not over
     pub fn go_to_next_frame(
         &mut self,
         player_a_choice: Direction,

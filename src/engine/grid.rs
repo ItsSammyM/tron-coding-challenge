@@ -1,11 +1,15 @@
 use crate::engine::prelude::*;
 use std::collections::HashMap;
 
+/// The size of the grid. The grid is a square, so this is both the width and
+/// height of the grid. The grid has GRID_SIZE * GRID_SIZE cells in total.
 pub const GRID_SIZE: usize = 21;
 
-#[repr(transparent)]
+/// Represents the grid of the game, which contains information about where the
+/// players are and where the walls are.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Grid([GridCell; GRID_SIZE * GRID_SIZE]);
+
 impl Grid {
     pub fn new_default(random_spawns: bool) -> Self {
         let mut out = Self([const { GridCell::Empty }; GRID_SIZE * GRID_SIZE]);
@@ -93,15 +97,19 @@ impl Grid {
     pub fn try_get_cell_mut(&mut self, pos: impl TryInto<GridPosition>) -> Option<&mut GridCell> {
         self.0.get_mut(pos.try_into().ok()?.i())
     }
+
+    /// Gets the cell at the given position.
     pub fn get_cell(&self, pos: impl Into<GridPosition>) -> &GridCell {
         self.0
             .get(pos.into().i())
             .expect("position is in bounds")
     }
+    /// Gets the cell at the given position, or None if the position is out of bounds.
     pub fn try_get_cell(&self, pos: impl TryInto<GridPosition>) -> Option<&GridCell> {
         self.0.get(pos.try_into().ok()?.i())
     }
 
+    /// Returns a map from player ID to that player's head position.
     pub fn head_positions_map(&self) -> HashMap<PlayerId, GridPosition> {
         self.0
             .iter()
@@ -117,20 +125,22 @@ impl Grid {
             })
             .collect()
     }
-    /// reutrns (Player A Head Position, Player B Head Position)
+
+    /// Returns (Player A Head Position, Player B Head Position)
     pub fn player_head_positions(&self) -> (GridPosition, GridPosition) {
         (
             self.player_head_position(PlayerId::new_o()),
             self.player_head_position(PlayerId::new_x()),
         )
     }
-    /// reutrns (Player A Head Position, Player B Head Position)
+    /// Returns (Player A Head Position, Player B Head Position)
     pub fn player_head_positions_slice(&self) -> [GridPosition; 2] {
         [
             self.player_head_position(PlayerId::new_o()),
             self.player_head_position(PlayerId::new_x()),
         ]
     }
+    /// Returns the head position of the given player ID.
     pub fn player_head_position(&self, id: PlayerId) -> GridPosition {
         self.0
             .iter()
@@ -146,6 +156,7 @@ impl Grid {
             })
             .expect("both players must have a head")
     }
+    /// Returns the head direction of the given player ID.
     pub fn player_head_direction(&self, id: PlayerId)->Direction{
         *self.0
             .iter()
@@ -164,6 +175,7 @@ impl Grid {
         self.get_cell(pos).is_not_empty()
     }
 
+    /// Returns a reference to the array of all cells in the grid, in order of their index (starting at 0).
     pub fn get_cells(&self) -> &[GridCell; GRID_SIZE * GRID_SIZE] {
         &self.0
     }

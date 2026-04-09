@@ -2,21 +2,36 @@ use std::marker::PhantomData;
 
 use crate::engine::prelude::*;
 
+/// Arguments passed to the bot constructor.
 #[derive(Debug, Clone, Copy)]
-pub struct BotArgs{
+pub struct BotArgs {
     player: PlayerId
 }
+
 impl BotArgs{
-    pub fn new(player: PlayerId) -> Self {
+    pub(super) fn new(player: PlayerId) -> Self {
         Self { player }
     }
+
+    /// Get which player you are
     pub fn my_player(&self) -> PlayerId {
         self.player
     }
 }
 
+/// A trait for defining bot behavior.
+/// 
+/// ## Writing your own bot
+/// 
+/// To write your own bot, implement this trait.
+/// 
+/// An example implementation can be found in `src/players/example_bot.rs`.
+/// A bare-bones template can be found in `src/players/bot_template.rs`.
 pub trait Bot: 'static {
+    /// The "contructor" for your bot. Add any initialization logic you want here.
     fn new(args: BotArgs) -> Self;
+
+    /// The main logic for your bot. Read the game state and determine which direction to move in.
     fn next_action(&mut self, game_state: &GameState) -> Direction;
 }
 
