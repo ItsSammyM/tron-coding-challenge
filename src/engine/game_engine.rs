@@ -38,7 +38,7 @@ impl GameEngine {
         match (a_action.is_err(), b_action.is_err()){
             (true, true) => NextFrameResult::Draw,
             (true, false) => NextFrameResult::Winner { player_who_won: PlayerId::X },
-            (false, true) => NextFrameResult::Winner { player_who_won: PlayerId::X },
+            (false, true) => NextFrameResult::Winner { player_who_won: PlayerId::O },
             (false, false) => {
                 let Ok(a_action) = a_action else {unreachable!()};
                 let Ok(b_action) = b_action else {unreachable!()};
@@ -59,6 +59,7 @@ impl GameEngine {
 
             if let Some(out) = self.go_to_next_frame().game_over() {
                 self.print_current_game_state();
+                println!("{}", out);
                 return out;
             }
         }

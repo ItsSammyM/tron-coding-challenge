@@ -1,4 +1,6 @@
-use crate::{engine::prelude::*, players::jack_papel_bots::{JackBot, a_star_pathfinding, base_heuristic, find_farthest_point, get_neighbors, pathfind, shortest_distance}};
+use std::rc::Rc;
+
+use crate::{engine::prelude::*, players::jack_papel_bots::{JackBot, RelevantInformation, SkillEstimate, a_star_diagnostic, a_star_pathfinding, base_heuristic, find_farthest_point, find_farthest_point_in_general, get_neighbors, next_direction_from_path, pathfind, shortest_distance}};
 
 /// This bot calculates the farthest reachable point from the other bot,
 /// assumes they are trying to go there, and tries to cut them off by 
@@ -6,11 +8,15 @@ use crate::{engine::prelude::*, players::jack_papel_bots::{JackBot, a_star_pathf
 /// but isn't closer to the other bot than to us.
 pub struct RipAndTear {
     my_player_id: PlayerId,
+    other_bot_skill: SkillEstimate
 }
 
 impl Bot for RipAndTear {
     fn new(args: BotArgs) -> Self {
-        Self { my_player_id: args.my_player() }
+        Self {
+            my_player_id: args.my_player(),
+            other_bot_skill: SkillEstimate::new()
+        }
     }
 
     fn next_action(&mut self, game_state: &GameState) -> Direction {
@@ -18,190 +24,87 @@ impl Bot for RipAndTear {
         let my_pos = grid.player_head_position(self.my_player_id);
         let other_pos = grid.player_head_position(self.my_player_id.other());
 
-        let farthest_point = find_farthest_point(other_pos, game_state).1;
+        let my_a_star = a_star_diagnostic(
+            my_pos,
+            grid.player_head_direction(self.my_player_id),
+            other_pos,
+            game_state.current_grid()
+        );
+        let other_a_star = a_star_diagnostic(
+            other_pos,
+            grid.player_head_direction(self.my_player_id.other()),
+            my_pos,
+            game_state.current_grid()
+        );
 
-        pathfind(other_pos, farthest_point, grid)
-            .and_then(|path| {
-                path.into_iter()
+        let mut new_other_bot_skill = self.other_bot_skill.clone();
+
+        let mut relevant_info = RelevantInformation {
+            game_state,
+            other_bot_skill: &mut new_other_bot_skill,
+            my_a_star: &my_a_star,
+            other_a_star: &other_a_star
+        };
+
+        self.estimate_other_bot_skill(&mut relevant_info);
+
+        self.other_bot_skill = relevant_info.other_bot_skill.clone();
+        *Rc::make_mut(&mut self.other_bot_skill.previous_diagnostic) = Some(other_a_star.clone());
+
+        self.dont_cut_ourselves_off(&relevant_info)
+            .or_else(|| self.try_not_to_be_cut_off(&relevant_info))
+            .or_else(|| {
+                // Try to cut THEM off
+                other_a_star.to_farthest_point
+                    .iter()
                     .enumerate()
                     .filter_map(|(other_distance, pos)| {
-                        // Ohhh boy this is computationally intensive.
-                        let my_distance = shortest_distance(my_pos, pos, grid)?;
+                        let my_distance = my_a_star.distances.get(pos).unwrap_or(&usize::MAX);
 
-                        if my_distance <= other_distance {
-                            Some((pos, my_distance))
+                        if *my_distance < other_distance {
+                            Some((pos, other_distance, my_distance))
                         } else {
                             None
                         }
                     })
-                    .min_by_key(|&(_, distance)| distance)
-                    .map(|(pos, _)| pos)
-            })
-            .and_then(|next_pos| {
-                if next_pos.borders_cell(grid, |cell| cell.is_players_head(self.my_player_id.other())) {
-                    // If the next position is right next to the other player, avoid a draw.
-                    // Find the point farthest from them---that way we don't walk into a corner or something.
-                    let farthest_point = find_farthest_point(other_pos, game_state).1;
-
-                    a_star_pathfinding(
-                        my_pos,
-                        farthest_point,
-                        // Pathfind around their head
-                        |pos| get_neighbors(pos, grid)
-                            .iter()
-                            .filter(|n| 
-                                !n.borders_cell(grid, |cell|
-                                    cell.is_players_head(self.my_player_id.other())
-                                )
-                            )
-                            .cloned()
-                            .collect(),
-                        base_heuristic
-                    )
-                        .and_then(|path| path.into_iter().nth(1))
-                        .map(|next_pos| self.direction_to(game_state, next_pos))
-                        .or_else(|| {
-                            pathfind(my_pos, farthest_point, grid)
-                                .and_then(|path| path.into_iter().nth(1))
-                                .map(|next_pos| self.direction_to(game_state, next_pos))
-                        })
-                } else {
-                    // Otherwise, try to cut them off.
-                    pathfind(my_pos, next_pos, grid)
-                        .and_then(|path| path.into_iter().nth(1))
-                        .map(|next_pos| self.direction_to(game_state, next_pos))
-                }
+                    .min_by_key(|&(_, other_distance, my_distance)| (my_distance, other_distance))
+                    .map(|(pos, _, _)| pos)
+                    .and_then(|next_pos| {
+                        if next_pos.borders_cell(grid, |cell| cell.is_players_head(self.my_player_id.other())) {
+                            // If the next position is right next to the other player, avoid a draw.
+                            // Find the point farthest from them---that way we don't walk into a corner or something.
+                            if game_state.settings.debug_mode {
+                                println!("JackBot: Oh darn we messed up!");
+                            }
+                            self.move_to_most_open_space(&relevant_info)
+                            // self.get_the_hell_out_of_dodge(game_state)
+                        } else {
+                            // Otherwise, try to cut them off.
+                            if game_state.settings.debug_mode {
+                                println!("JackBot: Cutting them off!");
+                            }
+                            next_direction_from_path(*next_pos, &my_a_star, game_state)
+                        }
+                    })
             })
             .or_else(|| {
                 // We can't cut them off.
                 // If our spaces are connected, try to get to the farthest point.
                 // Otherwise, try to fill the space as efficiently as possible.
-                let escape_plan = {
-                    let farthest_point = find_farthest_point(my_pos, game_state).1;
 
-                    pathfind(my_pos, farthest_point, grid)
-                        .and_then(|path| path.into_iter().nth(1))
-                        .map(|next_pos| self.direction_to(game_state, next_pos))
-                };
-
-                if pathfind(my_pos, other_pos, grid).is_some() {
+                if my_a_star.to_goal.is_some() {
                     if game_state.settings.debug_mode {
                         println!("rip_and_tear: escaping");
                     }
 
-                    if 
-                        let Some(direction) = escape_plan &&
-                        let Some(next_pos) = my_pos.after_moved(direction) &&
-                        next_pos.borders_cell(grid, |cell| cell.is_players_head(self.my_player_id.other()))
-                    {
-                        // If the next position is right next to the other player, avoid a draw.
-                        // Find the point farthest from them---that way we don't walk into a corner or something.
-                        let farthest_point = find_farthest_point(other_pos, game_state).1;
-
-                        a_star_pathfinding(
-                            my_pos,
-                            farthest_point,
-                            // Pathfind around their head
-                            |pos| get_neighbors(pos, grid)
-                                .iter()
-                                .filter(|n| 
-                                    !n.borders_cell(grid, |cell|
-                                        cell.is_players_head(self.my_player_id.other())
-                                    )
-                                )
-                                .cloned()
-                                .collect(),
-                            base_heuristic
-                        )
-                            .and_then(|path| path.into_iter().nth(1))
-                            .map(|next_pos| self.direction_to(game_state, next_pos))
-                            .or_else(|| {
-                                pathfind(my_pos, farthest_point, grid)
-                                    .and_then(|path| path.into_iter().nth(1))
-                                    .map(|next_pos| self.direction_to(game_state, next_pos))
-                            })
-                    } else {
-                        // We're not about to crash into them, so just execute the original escape plan.
-                        escape_plan
-                    }
+                    self.move_to_most_open_space(&relevant_info)
                 } else {
                     // Follow the right wall to fill the space.
                     if game_state.settings.debug_mode {
                         println!("rip_and_tear: filling");
                     }
-                    let direction = game_state.current_grid().player_head_direction(self.my_player_id);
 
-                    let available_directions = self.ideal_non_hole_directions(game_state).collect::<Vec<_>>();
-
-                    let can_go_right = available_directions.contains(&direction.right_of());
-                    let can_go_forward = available_directions.contains(&direction);
-                    let can_go_left = available_directions.contains(&direction.left_of());
-
-                    match (can_go_left, can_go_forward, can_go_right) {
-                        (false, false, false) => None,
-                        (false, false, true) => Some(direction.right_of()),
-                        (false, true, false) => Some(direction),
-                        (false, true, true) => {
-                            if 
-                                my_pos.after_moved(direction)
-                                    .and_then(|p| p.after_moved(direction.right_of()))
-                                    .is_some_and(|p| p.is_empty(grid))
-                            {
-                                Some(direction.right_of())
-                            } else {
-                                escape_plan
-                            }
-                        },
-                        (true, false, false) => Some(direction.left_of()),
-                        (true, false, true) => escape_plan,
-                        (true, true, false) => {
-                            if 
-                                my_pos.after_moved(direction)
-                                    .and_then(|p| p.after_moved(direction.left_of()))
-                                    .is_some_and(|p| p.is_empty(grid))
-                            {
-                                Some(direction)
-                            } else {
-                                escape_plan
-                            }
-                        },
-                        (true, true, true) => {
-                            let front_left_open = my_pos.after_moved(direction)
-                                .and_then(|p| p.after_moved(direction.left_of()))
-                                .is_some_and(|p| p.is_empty(grid));
-                            let front_right_open = my_pos.after_moved(direction)
-                                .and_then(|p| p.after_moved(direction.right_of()))
-                                .is_some_and(|p| p.is_empty(grid));
-                            
-                            match (front_left_open, front_right_open) {
-                                (false, false) => escape_plan,
-                                (false, true) => {
-                                    // Determine whether to turn right or go forward by looking one step further in each direction and seeing if it's open.
-                                    // This should automatically exclude the other path since our head is blocking it.
-                                    let forward = my_pos.after_moved(direction).unwrap();
-                                    let left = my_pos.after_moved(direction.left_of()).unwrap();
-
-                                    if find_farthest_point(forward, game_state).0 > find_farthest_point(left, game_state).0 {
-                                        Some(direction)
-                                    } else {
-                                        Some(direction.left_of())
-                                    }
-                                },
-                                (true, false) => {
-                                    // See above---same logic but for the left side.
-                                    let forward = my_pos.after_moved(direction).unwrap();
-                                    let right = my_pos.after_moved(direction.right_of()).unwrap();
-
-                                    if find_farthest_point(forward, game_state).0 > find_farthest_point(right, game_state).0 {
-                                        Some(direction)
-                                    } else {
-                                        Some(direction.right_of())
-                                    }
-                                },
-                                (true, true) => Some(direction.right_of())
-                            }
-                        },
-                    }
+                    self.fill_space(&relevant_info)
                 }
             })
             .unwrap_or(Direction::NegativeX)
