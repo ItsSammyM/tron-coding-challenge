@@ -1,4 +1,4 @@
-use crate::{engine::{game_engine::GameSettings, prelude::*}, get_bot_name};
+use crate::{GRID_SIZE, engine::{game_engine::GameSettings, prelude::*}, get_bot_name};
 
 const REPEATS: u16 = 3;
 

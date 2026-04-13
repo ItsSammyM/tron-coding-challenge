@@ -1,9 +1,7 @@
 use crate::engine::prelude::*;
 use std::collections::HashMap;
 
-/// The size of the grid. The grid is a square, so this is both the width and
-/// height of the grid. The grid has GRID_SIZE * GRID_SIZE cells in total.
-pub const GRID_SIZE: usize = 21;
+pub use crate::GRID_SIZE;
 
 /// Represents the grid of the game, which contains information about where the
 /// players are and where the walls are.
@@ -15,11 +13,24 @@ impl Grid {
         let mut out = Self([const { GridCell::Empty }; GRID_SIZE * GRID_SIZE]);
 
         let (o_pos, x_pos) = if random_spawns {
-            let o_pos = (rand::random_range(0..GRID_SIZE), rand::random_range(0..GRID_SIZE));
-            let mut x_pos = (rand::random_range(0..GRID_SIZE), rand::random_range(0..GRID_SIZE));
+            let mut o_pos = (GRID_SIZE / 2, GRID_SIZE / 2);
+            // Ensure O doesn't spawn in the middle --- then you can't mirror/rotate it for X's spawn.
+            while o_pos.0 == GRID_SIZE / 2 && o_pos.1 == GRID_SIZE / 2 {
+                o_pos = (rand::random_range(0..GRID_SIZE), rand::random_range(0..GRID_SIZE));
+            }
 
+            // Ensure equal footing by mirroring / rotating the O spawn to get the X spawn.
+            let mut x_pos = o_pos;
             while x_pos == o_pos {
-                x_pos = (rand::random_range(0..GRID_SIZE), rand::random_range(0..GRID_SIZE));
+                if rand::random() {
+                    x_pos = (x_pos.1, x_pos.0);
+                }
+                if rand::random() {
+                    x_pos = (GRID_SIZE - 1 - x_pos.0, x_pos.1);
+                }
+                if rand::random() {
+                    x_pos = (x_pos.0, GRID_SIZE - 1 - x_pos.1);
+                }
             }
 
             (o_pos, x_pos)

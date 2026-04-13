@@ -1,4 +1,4 @@
-use crate::{engine::prelude::*, players::jack_papel_bots::{JackBot, pathfind}};
+use crate::{engine::{game_engine::GameSettings, prelude::*}, players::jack_papel_bots::{JackBot, pathfind}};
 
 /// This bot thinks it's playing Snake. It hallucinates that there is a fruit on the board,
 /// and does A* pathfinding to try to eat it. It doesn't care about the other player---only

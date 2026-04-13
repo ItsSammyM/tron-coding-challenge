@@ -1,11 +1,11 @@
 use std::marker::PhantomData;
 
-use crate::engine::prelude::*;
+use crate::engine::{game_engine::GameSettings, prelude::*};
 
 /// Arguments passed to the bot constructor.
 #[derive(Debug, Clone, Copy)]
 pub struct BotArgs {
-    player: PlayerId
+    player: PlayerId,
 }
 
 impl BotArgs{

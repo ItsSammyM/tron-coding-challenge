@@ -4,7 +4,7 @@ pub use super::direction::Direction;
 pub use super::direction::Direction::*;
 pub use super::game_engine::GameEngine;
 pub use super::game_state::GameState;
-pub use super::grid::GRID_SIZE;
+pub use crate::GRID_SIZE;
 pub use super::grid::Grid;
 pub use super::grid_cell::GridCell;
 pub use super::grid_position::GridPosition;

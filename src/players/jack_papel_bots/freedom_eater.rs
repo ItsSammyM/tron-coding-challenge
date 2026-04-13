@@ -1,4 +1,4 @@
-use crate::{engine::prelude::*, players::jack_papel_bots::{JackBot, find_farthest_point, pathfind}};
+use crate::{engine::prelude::*, players::jack_papel_bots::{JackBot, find_farthest_point, find_farthest_point_in_general, pathfind}};
 
 /// Eats freedom.
 pub struct FreedomEater {
@@ -14,7 +14,7 @@ impl Bot for FreedomEater {
         let grid = game_state.current_grid();
         let start = grid.player_head_position(self.my_player_id);
 
-        let farthest_point = find_farthest_point(start, game_state).1;
+        let farthest_point = find_farthest_point_in_general(start, grid).1;
 
         pathfind(start, farthest_point, grid)
             .and_then(|path| path.into_iter().nth(1))

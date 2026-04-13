@@ -63,4 +63,25 @@ impl Direction {
             Direction::NegativeX => Direction::PositiveY,
         }
     }
+
+    /// Jack added this function because this is what `left_of` SHOULD BE CALLED.
+    /// Returns the direction 90 degrees counterclockwise of this direction.
+    pub const fn counterclockwise_of(self) -> Self{
+        self.left_of()
+    }
+
+    /// Jack added this function because this is what `right_of` SHOULD BE CALLED.
+    /// Returns the direction 90 degrees clockwise of this direction.
+    pub const fn clockwise_of(self) -> Self{
+        self.right_of()
+    }
+
+    pub const fn opposite(self) -> Self{
+        match self {
+            Direction::PositiveY => Direction::NegativeY,
+            Direction::NegativeY => Direction::PositiveY,
+            Direction::PositiveX => Direction::NegativeX,
+            Direction::NegativeX => Direction::PositiveX,
+        }
+    }
 }
