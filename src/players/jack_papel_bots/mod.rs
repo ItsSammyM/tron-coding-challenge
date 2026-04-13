@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}, rc::Rc, usize};
+use std::{collections::{HashMap, HashSet}, fmt::Display, rc::Rc, usize};
 
 use crate::engine::{grid::Grid, prelude::{Direction, GameState, GridPosition, PlayerId}};
 
@@ -285,8 +285,8 @@ pub fn other_likely_wont_block_filter(relevant_info: &RelevantInformation) -> im
                 d > distance ||
                 !(
                     (d <= 2) ||
-                    (relevant_info.other_bot_skill.chases.is_true() && d <= 5) ||
-                    (relevant_info.other_bot_skill.cuts_off.is_true() && d <= 10)
+                    (relevant_info.other_bot_skill.chases.is_confidently_higher_than(CHASE_THRESHOLD) && d <= 5) ||
+                    (relevant_info.other_bot_skill.cuts_off.is_confidently_higher_than(CUTOFF_THRESHOLD) && d <= 10)
                 )
             )
     }
@@ -479,7 +479,6 @@ trait JackBot {
         let game_state = relevant_info.game_state;
         let grid = game_state.current_grid();
         let my_pos = grid.player_head_position(self.my_player_id());
-        let other_pos = grid.player_head_position(self.my_player_id().other());
 
         if relevant_info.game_state.settings.debug_mode {
             println!("JackBot: Moving to most open space!");
@@ -488,7 +487,6 @@ trait JackBot {
         // For close-quarters conflicts, use the big guns.
         if
             let Some(path_to_other) = &relevant_info.my_a_star.to_goal &&
-            (relevant_info.other_bot_skill.chases.is_true() || relevant_info.other_bot_skill.cuts_off.is_true() || path_to_other.len() < 4) &&
             path_to_other.len() <= 10 &&
             let Some(direction) = my_pos.neighbors_with_direction()
                 .filter(|(_, n)| n.is_empty(grid))
@@ -685,7 +683,7 @@ trait JackBot {
     }
 
     fn try_not_to_be_cut_off(&mut self, relevant_info: &RelevantInformation) -> Option<Direction> {
-        if relevant_info.my_a_star.to_goal.as_ref().map(|p| p.len() - 1).is_none_or(|d| d > 3) && !relevant_info.other_bot_skill.chases.is_true() {
+        if relevant_info.my_a_star.to_goal.as_ref().map(|p| p.len() - 1).is_none_or(|d| d > 3) && !relevant_info.other_bot_skill.chases.is_confidently_higher_than(CHASE_THRESHOLD) {
             return None;
         }
         if relevant_info.game_state.settings.debug_mode {
@@ -711,7 +709,7 @@ trait JackBot {
                             (my_distance_to_their_cutoff < other_distance_to_my_cutoff && relevant_info.other_a_star.to_farthest_point.len() >= relevant_info.my_a_star.to_farthest_point.len())
                         ) &&
                     (
-                        (other_distance_to_my_cutoff <= my_distance_to_my_cutoff + 2 && matches!(relevant_info.other_bot_skill.cuts_off, EstimationStatus::Estimated(true))) ||
+                        (other_distance_to_my_cutoff <= my_distance_to_my_cutoff + 2 && relevant_info.other_bot_skill.cuts_off.is_confidently_higher_than(CUTOFF_THRESHOLD)) ||
                         (other_distance_to_my_cutoff <= my_distance_to_my_cutoff) ||
                         (other_distance_to_my_cutoff == 1)
                     )
@@ -721,7 +719,7 @@ trait JackBot {
                     }
 
                     self.move_to_most_open_space(relevant_info)
-                } else if other_distance_to_my_cutoff == my_distance_to_my_cutoff + 1 && matches!(relevant_info.other_bot_skill.cuts_off, EstimationStatus::Estimated(true)) {
+                } else if other_distance_to_my_cutoff == my_distance_to_my_cutoff + 1 && relevant_info.other_bot_skill.cuts_off.is_confidently_higher_than(CUTOFF_THRESHOLD) {
                     if relevant_info.game_state.settings.debug_mode {
                         println!("JackBot: Oh, no you dont!");
                     }
@@ -741,7 +739,7 @@ trait JackBot {
             game_state,
             other_bot_skill,
             my_a_star,
-            ..
+            other_a_star
         } = relevant_info;
 
         let frame_time = game_state.current_time();
@@ -754,92 +752,59 @@ trait JackBot {
             return;
         };
 
-        let grid = game_state.current_grid();
-
-        let mut positive_chasing_skill_check = false;
+        let mut positive_chase_check = false;
         
-        match &mut other_bot_skill.chases {
-            EstimationStatus::Estimated(chases) => {
-                if game_state.settings.debug_mode {
-                    println!("{} chases: {}", self.my_player_id().other(), chases);
+        let Estimation { cases_checked, cases_matched } = &mut other_bot_skill.chases;
+        {
+            // Check if their distance to us increased when they had the opportunity
+            if 
+                let Some(my_last_pos) = other_last_a_star.to_goal.as_ref().and_then(|p| p.last()) &&
+                let Some(dist_to_me) = other_last_a_star.distances.get(my_last_pos) &&
+                let Some(new_dist_to_me) = other_a_star.distances.get(&my_a_star.start)
+            {
+                *cases_checked += 1;
+
+                if *dist_to_me > *new_dist_to_me {
+                    *cases_matched += 1;
+                    positive_chase_check = true;
                 }
             }
-            EstimationStatus::Estimating { cases_checked, cases_matched } => {
-                let a_star_direction = other_last_a_star.to_goal.as_ref()
-                    .and_then(|path| path.get(1))
-                    .map(|next_pos| direction_to(other_last_a_star.start, *next_pos));
 
-                let actual_direction = grid.player_head_direction(self.my_player_id().other());
-
-                // This check isn't perfect --- it checks if they're currently facing
-                // the direction of the A* path, but we would only really know that 
-                // when they make their move, which is one frame later.
-                if let Some(a_star_direction) = a_star_direction {
-                    *cases_checked += 1;
-
-                    if a_star_direction == actual_direction {
-                        *cases_matched += 1;
-                        positive_chasing_skill_check = true;
-                    }
-                }
-
-                if game_state.settings.debug_mode {
-                    println!("{} chases? {:.0}%", self.my_player_id().other(), if *cases_checked > 0 { *cases_matched as f64 / *cases_checked as f64 * 100.0 } else { 0.0 });
-                }
-
-                // Make sure it agrees with A* more than 5 times,
-                // and also more than 30% of the time since games could last a while.
-                if *cases_checked > 15 && *cases_matched as f64 / *cases_checked as f64 > 0.3 && *cases_matched > 5 {
-                    other_bot_skill.chases = EstimationStatus::Estimated(true);
-                } else if *cases_checked > 15 && *cases_matched < 3 {
-                    other_bot_skill.chases = EstimationStatus::Estimated(false);
-                }
+            if game_state.settings.debug_mode {
+                println!("{} chases?\t{}", self.my_player_id().other(), other_bot_skill.chases);
             }
         }
 
-        match &mut other_bot_skill.cuts_off {
-            EstimationStatus::Estimated(cuts_off) => {
-                if game_state.settings.debug_mode {
-                    println!("{} cuts off: {}", self.my_player_id().other(), cuts_off);
-                }
-            }
-            EstimationStatus::Estimating { cases_checked, cases_matched } => {
-                // See if they're trying to cut us off regularly
-                if 
-                    !positive_chasing_skill_check &&
-                    let Some(next_pos) = my_a_star.to_farthest_point
-                        .iter()
-                        .enumerate()
-                        .filter_map(|(my_distance, &pos)| {
-                            let other_distance = other_last_a_star.distances.get(&pos).copied().unwrap_or(usize::MAX);
+        let Estimation { cases_checked, cases_matched } = &mut other_bot_skill.cuts_off;
+        {
+            // See if they're trying to cut us off regularly
+            if 
+                !positive_chase_check &&
+                let Some(next_pos) = my_a_star.to_farthest_point
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(my_distance, &pos)| {
+                        let other_distance = other_last_a_star.distances.get(&pos).copied().unwrap_or(usize::MAX);
 
-                            if other_distance < my_distance {
-                                Some((pos, my_distance, other_distance))
-                            } else {
-                                None
-                            }
-                        })
-                        .min_by_key(|&(_, my_distance, other_distance)| (other_distance, my_distance))
-                        .map(|(pos, _, _)| pos) && 
-                    let Some(cutoff_dir) = next_direction_from_path(next_pos, other_last_a_star, game_state)
-                {
-                    *cases_checked += 1;
-                    if cutoff_dir == grid.player_head_direction(self.my_player_id().other()) {
-                        *cases_matched += 1;
-                    }
-                };
-
-                if game_state.settings.debug_mode {
-                    println!("{} cuts off? {:.0}%", self.my_player_id().other(), if *cases_checked > 0 { *cases_matched as f64 / *cases_checked as f64 * 100.0 } else { 0.0 });
+                        if other_distance < my_distance {
+                            Some((pos, my_distance, other_distance))
+                        } else {
+                            None
+                        }
+                    })
+                    .min_by_key(|&(_, my_distance, other_distance)| (other_distance, my_distance))
+                    .map(|(pos, _, _)| pos) && 
+                let Some(dist_to_next_pos) = other_last_a_star.distances.get(&next_pos) &&
+                let Some(new_dist_to_next_pos) = other_a_star.distances.get(&next_pos)
+            {
+                *cases_checked += 1;
+                if *dist_to_next_pos >= *new_dist_to_next_pos {
+                    *cases_matched += 1;
                 }
+            };
 
-                // Make sure it agrees with A* more than 5 times,
-                // and also more than 30% of the time since games could last a while.
-                if *cases_checked > 15 && *cases_matched as f64 / *cases_checked as f64 > 0.3 && *cases_matched > 5 {
-                    other_bot_skill.cuts_off = EstimationStatus::Estimated(true);
-                } else if *cases_checked > 15 && *cases_matched < 3 {
-                    other_bot_skill.cuts_off = EstimationStatus::Estimated(false);
-                }
+            if game_state.settings.debug_mode {
+                println!("{} cuts off?\t{}", self.my_player_id().other(), other_bot_skill.cuts_off);
             }
         }
     }
@@ -854,33 +819,78 @@ pub struct RelevantInformation<'a> {
 
 #[derive(Clone)]
 pub struct SkillEstimate {
-    chases: EstimationStatus,
-    cuts_off: EstimationStatus,
+    chases: Estimation,
+    cuts_off: Estimation,
     previous_diagnostic: Rc<Option<AStarDiagnostic>>,
 }
 
 impl SkillEstimate {
     fn new() -> Self {
         Self {
-            chases: EstimationStatus::Estimating { cases_checked: 0, cases_matched: 0 },
-            cuts_off: EstimationStatus::Estimating { cases_checked: 0, cases_matched: 0 },
+            chases: Estimation { cases_checked: 0, cases_matched: 0 },
+            cuts_off: Estimation { cases_checked: 0, cases_matched: 0 },
             previous_diagnostic: Rc::new(None),
         }
     }
 }
 
 #[derive(Clone, Copy)]
-pub enum EstimationStatus {
-    Estimating {
-        cases_checked: usize,
-        cases_matched: usize
-    },
-    Estimated(bool)
+pub struct Estimation {
+    cases_checked: usize,
+    cases_matched: usize
 }
 
-impl EstimationStatus {
-    pub fn is_true(&self) -> bool {
-        matches!(self, EstimationStatus::Estimated(true))
+pub const CUTOFF_THRESHOLD: f32 = 0.40;
+pub const CHASE_THRESHOLD: f32 = 0.40;
+
+impl Estimation {
+    pub fn percentage(&self) -> f32 {
+        if self.cases_checked == 0 {
+            return 0.0;
+        }
+        self.cases_matched as f32 / self.cases_checked as f32
+    }
+
+    // Wilson score interval for a Bernoulli parameter, with confidence level 99%.
+    // Returns (lower_bound, upper_bound).
+    pub fn confidence_interval(&self) -> (f32, f32) {
+        if self.cases_checked == 0 {
+            return (0.0, 1.0);
+        }
+        let z = 2.575; // 99% confidence
+        let p = self.percentage();
+
+        let zso2n = z * z / (2.0 * self.cases_checked as f32);
+        let zso4ns = z * z / (4.0 * self.cases_checked as f32 * self.cases_checked as f32);
+
+        let divisor = 1.0 + 2.0 * zso2n;
+
+        (
+            (p + zso2n - z * f32::sqrt((p * (1.0 - p) + zso4ns) / self.cases_checked as f32)) / divisor,
+            (p + zso2n + z * f32::sqrt((p * (1.0 - p) + zso4ns) / self.cases_checked as f32)) / divisor
+        )
+    }
+
+    pub fn is_confidently_higher_than(&self, percentage: f32) -> bool {
+        self.confidence_interval().0 > percentage
+    }
+
+    pub fn is_maybe_higher_than(&self, percentage: f32) -> bool {
+        self.confidence_interval().1 > percentage
+    }
+
+    pub fn is_confidently_lower_than(&self, percentage: f32) -> bool {
+        self.confidence_interval().1 < percentage
+    }
+
+    pub fn is_maybe_lower_than(&self, percentage: f32) -> bool {
+        self.confidence_interval().0 < percentage
+    }
+}
+
+impl Display for Estimation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{: >6.2}% - {: >6.2}%  ({})", self.confidence_interval().0 * 100.0, self.confidence_interval().1 * 100.0, self.cases_checked)
     }
 }
 

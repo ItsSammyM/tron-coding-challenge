@@ -5,8 +5,6 @@ use regex::Regex;
 use crate::competition::CompetitionSettings;
 use crate::engine::game_engine::GameSettings;
 use crate::players::example_bot::ExampleBot;
-use crate::players::jack_papel_bots::rip_and_tear::RipAndTear;
-use crate::players::stardustz_bots::StardustzBot;
 use crate::{engine::prelude::*, players::human_controlled_bot::HumanControlledBot};
 
 use crate::players::*;
@@ -26,9 +24,9 @@ pub const GRID_SIZE: usize = 21;
 
 // Set these to your desired bots for testing!
 /// The bot controlling player "O"
-type OBot = RipAndTear;
+type OBot = HumanControlledBot;
 /// The bot controlling player "X"
-type XBot = StardustzBot;
+type XBot = ExampleBot;
 
 fn main() {
     match MODE {
