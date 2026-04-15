@@ -16,3 +16,5 @@ pub use super::bot::BotFactory;
 pub use super::bot::BotActionGenerator;
 
 pub use super::bot::BotArgs;
+
+pub use super::game_engine::GameSettings;

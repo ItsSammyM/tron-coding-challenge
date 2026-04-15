@@ -10,7 +10,7 @@ pub struct GameEngine {
 /// 
 /// Your bot should only leave debug print statements when `debug_mode` is true.
 /// You can check this by calling `game_state.settings.debug_mode`.
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct GameSettings {
     pub debug_mode: bool,
     pub random_spawns: bool,
@@ -20,9 +20,12 @@ impl GameEngine {
     pub fn new(o: &dyn BotFactory, x: &dyn BotFactory, settings: GameSettings) -> Self {
         Self {
             game_state: GameState::new(settings),
-            o: o.new_bot(BotArgs::new(PlayerId::O)),
-            x: x.new_bot(BotArgs::new(PlayerId::X)),
+            o: o.new_bot(BotArgs::new(PlayerId::O, settings)),
+            x: x.new_bot(BotArgs::new(PlayerId::X, settings)),
         }
+    }
+    pub fn game_state(&self)->&GameState{
+        &self.game_state
     }
 }
 impl GameEngine {

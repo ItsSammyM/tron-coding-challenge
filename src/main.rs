@@ -65,12 +65,17 @@ fn main() {
                 CompetitionPlayer::new_player::<example_bot::ExampleBot>(),
                 CompetitionPlayer::new_player::<bot_template::BotTemplate>(),
                 CompetitionPlayer::new_player::<stardustz_bots::StardustzBot>(),
+                CompetitionPlayer::new_player::<stardustz_bots::CnnmlBot>(),
+                CompetitionPlayer::new_player::<stardustz_bots::ChaseBot>(),
                 CompetitionPlayer::new_player::<jack_papel_bots::hallucinator::Hallucinator>(),
                 CompetitionPlayer::new_player::<jack_papel_bots::rip_and_tear::RipAndTear>(),
                 CompetitionPlayer::new_player::<jack_papel_bots::freedom_eater::FreedomEater>(),
                 // Add your bot here!
             ])
         },
+        Mode::Sentinel => {
+            
+        }
     }
 }
 
@@ -91,6 +96,8 @@ enum Mode {
     },
     /// Run a full competition between every bot. Useful for seeing how your bot does compared to all other bots.
     Competition,
+    // Does nothing
+    Sentinel,
 }
 
 pub fn get_bot_name<B: Bot>() -> String {

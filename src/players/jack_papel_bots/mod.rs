@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}, fmt::Display, rc::Rc, usize};
+use std::{collections::{HashMap, HashSet}, fmt::Display, sync::Arc, usize};
 
 use crate::engine::{grid::Grid, prelude::{Direction, GameState, GridPosition, PlayerId}};
 
@@ -821,7 +821,7 @@ pub struct RelevantInformation<'a> {
 pub struct SkillEstimate {
     chases: Estimation,
     cuts_off: Estimation,
-    previous_diagnostic: Rc<Option<AStarDiagnostic>>,
+    previous_diagnostic: Arc<Option<AStarDiagnostic>>,
 }
 
 impl SkillEstimate {
@@ -829,7 +829,7 @@ impl SkillEstimate {
         Self {
             chases: Estimation { cases_checked: 0, cases_matched: 0 },
             cuts_off: Estimation { cases_checked: 0, cases_matched: 0 },
-            previous_diagnostic: Rc::new(None),
+            previous_diagnostic: Arc::new(None),
         }
     }
 }

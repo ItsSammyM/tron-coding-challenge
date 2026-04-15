@@ -1,6 +1,12 @@
-use std::rc::Rc;
-
-use crate::{engine::prelude::*, players::jack_papel_bots::{JackBot, RelevantInformation, SkillEstimate, a_star_diagnostic, a_star_pathfinding, base_heuristic, find_farthest_point, find_farthest_point_in_general, get_neighbors, next_direction_from_path, pathfind, shortest_distance}};
+use crate::{
+    engine::prelude::*,
+    players::jack_papel_bots::{
+        JackBot, RelevantInformation, SkillEstimate, a_star_diagnostic,
+        a_star_pathfinding, base_heuristic, find_farthest_point,
+        find_farthest_point_in_general, get_neighbors, next_direction_from_path,
+        pathfind, shortest_distance
+    }
+};
 
 /// This bot calculates the farthest reachable point from the other bot,
 /// assumes they are trying to go there, and tries to cut them off by 
@@ -49,7 +55,7 @@ impl Bot for RipAndTear {
         self.estimate_other_bot_skill(&mut relevant_info);
 
         self.other_bot_skill = relevant_info.other_bot_skill.clone();
-        *Rc::make_mut(&mut self.other_bot_skill.previous_diagnostic) = Some(other_a_star.clone());
+        *std::sync::Arc::make_mut(&mut self.other_bot_skill.previous_diagnostic) = Some(other_a_star.clone());
 
         self.dont_cut_ourselves_off(&relevant_info)
             .or_else(|| self.try_not_to_be_cut_off(&relevant_info))

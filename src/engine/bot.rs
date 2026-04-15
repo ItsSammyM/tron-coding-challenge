@@ -6,16 +6,22 @@ use crate::engine::{game_engine::GameSettings, prelude::*};
 #[derive(Debug, Clone, Copy)]
 pub struct BotArgs {
     player: PlayerId,
+    game_settings: GameSettings
 }
 
 impl BotArgs{
-    pub(super) fn new(player: PlayerId) -> Self {
-        Self { player }
+    pub(super) fn new(player: PlayerId, game_settings: GameSettings) -> Self {
+        Self { player, game_settings }
     }
 
     /// Get which player you are
     pub fn my_player(&self) -> PlayerId {
         self.player
+    }
+
+
+    pub fn game_settings(&self) -> &GameSettings {
+        &self.game_settings
     }
 }
 
@@ -27,7 +33,7 @@ impl BotArgs{
 /// 
 /// An example implementation can be found in `src/players/example_bot.rs`.
 /// A bare-bones template can be found in `src/players/bot_template.rs`.
-pub trait Bot: 'static {
+pub trait Bot: 'static + Send + Sync {
     /// The "contructor" for your bot. Add any initialization logic you want here.
     fn new(args: BotArgs) -> Self;
 
@@ -35,7 +41,7 @@ pub trait Bot: 'static {
     fn next_action(&mut self, game_state: &GameState) -> Direction;
 }
 
-pub trait BotFactory {
+pub trait BotFactory: Send + Sync {
     fn new_bot(&self, args: BotArgs) -> Box<dyn BotActionGenerator>;
 }
 
