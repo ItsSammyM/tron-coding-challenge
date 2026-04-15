@@ -12,6 +12,6 @@ pub fn opponents(model: &Model) -> Vec<Box<dyn BotFactory>> {
         BuildBot::<stardustz_bots::StardustzBot>::new_boxed(),
         Box::new(ModelFactory{model: model.clone()}),
         BuildBot::<jack_papel_bots::rip_and_tear::RipAndTear>::new_boxed(),
-        BuildBot::<chatgpt_bots::apex_bot_fast::ApexBot>::new_boxed()
+        BuildBot::<chatgpt_bots::myr::Myr>::new_boxed()
     ]
 }

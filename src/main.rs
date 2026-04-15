@@ -68,12 +68,12 @@ fn main() {
                 CompetitionPlayer::new_player::<jack_papel_bots::hallucinator::Hallucinator>(),
                 CompetitionPlayer::new_player::<jack_papel_bots::rip_and_tear::RipAndTear>(),
                 CompetitionPlayer::new_player::<jack_papel_bots::freedom_eater::FreedomEater>(),
-                CompetitionPlayer::new_player::<chatgpt_bots::apex_bot_fast::ApexBot>(),
+                CompetitionPlayer::new_player::<chatgpt_bots::myr::Myr>(),
                 // Add your bot here!
             ])
         },
         Mode::Sentinel => {
-            
+
         }
     }
 }
