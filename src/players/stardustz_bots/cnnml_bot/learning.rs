@@ -9,6 +9,13 @@ use crate::{
     players::stardustz_bots::{CnnmlBot, cnnml_bot::{helper::{load, save}, model::Model, opponents::opponents}}
 };
 
+const LEARN_NAME: &'static str = "test";
+
+pub fn run_learning_with_saves(){
+    let mut learning = LearningAlgorithm::load_or_new(LEARN_NAME);
+    learning.run_and_save(LEARN_NAME);
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct LearningAlgorithm {
     current_best: Vec<(Model, f32)>,

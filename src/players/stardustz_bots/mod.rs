@@ -8,3 +8,4 @@ pub use chase_bot::ChaseBot;
 pub use space_fill_bot::SimpleSpaceFillBot;
 pub use stardustz_bot::StardustzBot;
 pub use cnnml_bot::CnnmlBot;
+pub use cnnml_bot::learning::run_learning_with_saves;

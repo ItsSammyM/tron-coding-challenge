@@ -1,4 +1,4 @@
-use crate::{engine::prelude::*, players::stardustz_bots::cnnml_bot::{helper::*, learning::LearningAlgorithm, model::{Model, ModelOutput}, model_engine::ModelEngine}};
+use crate::{engine::prelude::*, players::stardustz_bots::cnnml_bot::{helper::*, model::{Model, ModelOutput}, model_engine::ModelEngine}};
 
 
 
@@ -6,13 +6,6 @@ pub struct CnnmlBot{
     args: BotArgs,
     memory: Option<Vec<f32>>,
     model: Model,
-}
-
-const LEARN_NAME: &'static str = "test";
-
-fn run_learning_with_saves(){
-    let mut learning = LearningAlgorithm::load_or_new(LEARN_NAME);
-    learning.run_and_save(LEARN_NAME);
 }
 
 impl Bot for CnnmlBot{
