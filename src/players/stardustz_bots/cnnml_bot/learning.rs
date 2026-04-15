@@ -45,7 +45,7 @@ impl LearningAlgorithm{
         while let Some(new_model) = new_models.pop() {
             join_handles.push(
                 std::thread::spawn(move ||{
-                    let other_bots = opponents();
+                    let other_bots = opponents(&new_model);
                     let score = Self::score(&new_model, &other_bots);
                     (new_model, score)
                 })
@@ -130,8 +130,8 @@ impl LearningAlgorithm{
 }
 
 
-struct ModelFactory{
-    model: Model
+pub struct ModelFactory{
+    pub model: Model
 }
 impl BotFactory for ModelFactory{
     fn new_bot(&self, args: BotArgs) -> Box<dyn BotActionGenerator> {
