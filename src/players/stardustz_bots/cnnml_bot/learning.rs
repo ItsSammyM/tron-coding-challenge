@@ -129,8 +129,8 @@ impl LearningAlgorithm{
         let num_frames = game_engine.game_state().current_time();
 
         match winner {
-            GameOver::Winner { player_who_won } if player_who_won == me => 80f32 + 2f32*MAX_FRAMES_POSSIBLE as f32 - num_frames as f32,
-            GameOver::Winner { .. } => num_frames as f32 - MAX_FRAMES_POSSIBLE as f32 - 80f32,
+            GameOver::Winner { player_who_won } if player_who_won == me => 150f32 + 2f32*MAX_FRAMES_POSSIBLE as f32 - num_frames as f32,
+            GameOver::Winner { .. } => num_frames as f32 - MAX_FRAMES_POSSIBLE as f32 - 50f32,
             GameOver::Draw => num_frames as f32,
         }
     }

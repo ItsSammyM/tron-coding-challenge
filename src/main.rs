@@ -63,13 +63,12 @@ fn main() {
             
             competition.run_and_print(vec![
                 CompetitionPlayer::new_player::<example_bot::ExampleBot>(),
-                CompetitionPlayer::new_player::<bot_template::BotTemplate>(),
                 CompetitionPlayer::new_player::<stardustz_bots::StardustzBot>(),
                 CompetitionPlayer::new_player::<stardustz_bots::CnnmlBot>(),
-                CompetitionPlayer::new_player::<stardustz_bots::ChaseBot>(),
                 CompetitionPlayer::new_player::<jack_papel_bots::hallucinator::Hallucinator>(),
                 CompetitionPlayer::new_player::<jack_papel_bots::rip_and_tear::RipAndTear>(),
                 CompetitionPlayer::new_player::<jack_papel_bots::freedom_eater::FreedomEater>(),
+                CompetitionPlayer::new_player::<chatgpt_bots::apex_bot_fast::ApexBot>(),
                 // Add your bot here!
             ])
         },
