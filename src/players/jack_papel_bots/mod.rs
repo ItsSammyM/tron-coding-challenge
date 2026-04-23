@@ -5,6 +5,7 @@ use crate::engine::{grid::Grid, prelude::{Direction, GameState, GridPosition, Pl
 pub mod hallucinator;
 pub mod freedom_eater;
 pub mod rip_and_tear;
+pub mod cut_em_offer;
 
 #[derive(Eq)]
 struct CellScore<O: Ord + PartialEq + PartialOrd + Eq>(O, GridPosition);

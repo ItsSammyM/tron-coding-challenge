@@ -66,6 +66,7 @@ fn main() {
                 CompetitionPlayer::new_player::<stardustz_bots::StardustzBot>(),
                 CompetitionPlayer::new_player::<stardustz_bots::CnnmlBot>(),
                 CompetitionPlayer::new_player::<jack_papel_bots::hallucinator::Hallucinator>(),
+                CompetitionPlayer::new_player::<jack_papel_bots::cut_em_offer::CutEmOffer>(),
                 CompetitionPlayer::new_player::<jack_papel_bots::rip_and_tear::RipAndTear>(),
                 CompetitionPlayer::new_player::<jack_papel_bots::freedom_eater::FreedomEater>(),
                 CompetitionPlayer::new_player::<chatgpt_bots::myr::Myr>(),
@@ -89,7 +90,7 @@ enum Mode {
     TestUntilFailureOrDraw,
     /// Run games with debug output.
     TestMany,
-    /// Run 100 games and print the results. Useful for testing how well your bot does against another bot on average.
+    /// Run `simulations` games and print the results. Useful for testing how well your bot does against another bot on average.
     Sample {
         simulations: usize
     },
@@ -118,11 +119,11 @@ fn sample_games<O: Bot, X: Bot>(simulations: usize) {
         
         match run_test_game::<O, X>() {
             GameOver::Winner { player_who_won: PlayerId::O } => {
-                println!("Round {}: {}", i + 1, o_name);
+                println!("Round {}: {} (O)", i + 1, o_name);
                 o_games += 1;
             },
             GameOver::Winner { player_who_won: PlayerId::X } => {
-                println!("Round {}: {}", i + 1, x_name);
+                println!("Round {}: {} (X)", i + 1, x_name);
                 x_games += 1;
             },
             GameOver::Draw => {
